@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\Auth\MeController;
 use App\Http\Controllers\Api\V1\Comment\CommentController;
 use App\Http\Controllers\Api\V1\Customer\CustomerContactController;
 use App\Http\Controllers\Api\V1\Customer\CustomerController;
+use App\Http\Controllers\Api\V1\Dashboard\DashboardController;
 use App\Http\Controllers\Api\V1\Invoice\InvoiceController;
 use App\Http\Controllers\Api\V1\Notification\NotificationController;
 use App\Http\Controllers\Api\V1\OrganizationController;
@@ -111,5 +112,12 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
         Route::post('/notifications/read-all', [NotificationController::class, 'readAll']);
         Route::post('/notifications/{notification}/read', [NotificationController::class, 'read']);
+
+        Route::prefix('dashboard')->group(function (): void {
+            Route::get('/overview', [DashboardController::class, 'overview']);
+            Route::get('/request-volume', [DashboardController::class, 'requestVolume']);
+            Route::get('/sla', [DashboardController::class, 'sla']);
+            Route::get('/team-performance', [DashboardController::class, 'teamPerformance']);
+        });
     });
 });
