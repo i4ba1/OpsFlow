@@ -4,6 +4,8 @@ namespace App\Support\Http;
 
 use App\Exceptions\ApprovalAlreadyRespondedException;
 use App\Exceptions\InvalidTransitionException;
+use App\Exceptions\InvoiceAlreadyPaidException;
+use App\Exceptions\InvoiceNotEditableException;
 use App\Exceptions\RequestNotAssignableException;
 use App\Exceptions\RequestNotEditableException;
 use App\Exceptions\RoleInUseException;
@@ -81,6 +83,8 @@ final class ApiExceptionRenderer
             return match (true) {
                 $exception instanceof RoleInUseException => 'ROLE_IN_USE',
                 $exception instanceof ApprovalAlreadyRespondedException => 'APPROVAL_ALREADY_RESPONDED',
+                $exception instanceof InvoiceNotEditableException => 'INVOICE_NOT_EDITABLE',
+                $exception instanceof InvoiceAlreadyPaidException => 'INVOICE_ALREADY_PAID',
                 $exception instanceof InvalidTransitionException => 'REQUEST_INVALID_TRANSITION',
                 $exception instanceof RequestNotAssignableException => 'REQUEST_NOT_ASSIGNABLE',
                 $exception instanceof RequestNotEditableException => 'REQUEST_NOT_EDITABLE',

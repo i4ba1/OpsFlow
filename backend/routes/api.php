@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\Auth\MeController;
 use App\Http\Controllers\Api\V1\Comment\CommentController;
 use App\Http\Controllers\Api\V1\Customer\CustomerContactController;
 use App\Http\Controllers\Api\V1\Customer\CustomerController;
+use App\Http\Controllers\Api\V1\Invoice\InvoiceController;
 use App\Http\Controllers\Api\V1\Notification\NotificationController;
 use App\Http\Controllers\Api\V1\OrganizationController;
 use App\Http\Controllers\Api\V1\PingController;
@@ -62,6 +63,14 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::get('/projects/{project}', [ProjectController::class, 'show']);
         Route::patch('/projects/{project}', [ProjectController::class, 'update']);
         Route::post('/projects/{project}/archive', [ProjectController::class, 'archive']);
+
+        Route::get('/invoices', [InvoiceController::class, 'index']);
+        Route::post('/invoices', [InvoiceController::class, 'store']);
+        Route::get('/invoices/{invoice}', [InvoiceController::class, 'show']);
+        Route::patch('/invoices/{invoice}', [InvoiceController::class, 'update']);
+        Route::post('/invoices/{invoice}/issue', [InvoiceController::class, 'issue']);
+        Route::post('/invoices/{invoice}/mark-paid', [InvoiceController::class, 'markPaid']);
+        Route::post('/invoices/{invoice}/void', [InvoiceController::class, 'void']);
 
         Route::get('/service-requests', [ServiceRequestController::class, 'index']);
         Route::post('/service-requests', [ServiceRequestController::class, 'store']);

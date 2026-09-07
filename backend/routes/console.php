@@ -2,6 +2,7 @@
 
 use App\Jobs\CheckActiveServiceRequestSlas;
 use App\Jobs\ExpirePendingApprovals;
+use App\Jobs\MarkOverdueInvoices;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -27,3 +28,11 @@ Schedule::job(ExpirePendingApprovals::class)
     ->everyFiveMinutes()
     ->withoutOverlapping()
     ->description('Expire pending approvals past their due date');
+
+// Invoice overdue sweep (PRD §33): ISSUED invoices whose due date has passed
+// move to OVERDUE. The query only matches ISSUED rows with a due date before
+// today, so re-runs never double-flip an invoice.
+Schedule::job(MarkOverdueInvoices::class)
+    ->hourly()
+    ->withoutOverlapping()
+    ->description('Mark issued invoices past their due date as overdue');
