@@ -62,11 +62,7 @@ export function SlaPoliciesPage() {
                     <TableCell>{policy.timezone}</TableCell>
                     <TableCell>{policy.business_calendar_id ? 'Yes' : '—'}</TableCell>
                     <TableCell>
-                      <Stack
-                        direction="row"
-                        spacing={0.5}
-                        sx={{ flexWrap: 'wrap', rowGap: 0.5 }}
-                      >
+                      <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
                         {policy.targets.map((target) => (
                           <Chip
                             key={target.priority}

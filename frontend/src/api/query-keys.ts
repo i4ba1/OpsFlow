@@ -36,3 +36,19 @@ export const calendarKeys = {
   all: ['business-calendars'] as const,
   lists: () => [...calendarKeys.all, 'list'] as const,
 };
+
+export const approvalKeys = {
+  all: ['approvals'] as const,
+  lists: () => [...approvalKeys.all, 'list'] as const,
+  list: (filters: unknown) => [...approvalKeys.lists(), filters] as const,
+  details: () => [...approvalKeys.all, 'detail'] as const,
+  detail: (id: string) => [...approvalKeys.details(), id] as const,
+};
+
+export const invoiceKeys = {
+  all: ['invoices'] as const,
+  lists: () => [...invoiceKeys.all, 'list'] as const,
+  list: (filters: unknown) => [...invoiceKeys.lists(), filters] as const,
+  details: () => [...invoiceKeys.all, 'detail'] as const,
+  detail: (id: string) => [...invoiceKeys.details(), id] as const,
+};

@@ -189,3 +189,49 @@ export type BusinessCalendar = {
   hours: { id: string; day_of_week: number; opens_at: string; closes_at: string }[];
   holidays: { id: string; name: string; date: string }[];
 };
+
+export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'EXPIRED';
+export type ApprovalType = 'ACCEPTANCE' | 'QUOTATION' | 'CHANGE_REQUEST' | 'EXCEPTION';
+
+export type Approval = {
+  id: string;
+  service_request_id: string;
+  type: ApprovalType;
+  title: string;
+  description: string | null;
+  status: ApprovalStatus;
+  due_at: string | null;
+  responded_at: string | null;
+  response_note: string | null;
+  requested_by: { id: string; name: string };
+  assignee: { id: string; name: string };
+  created_at: string;
+};
+
+export type InvoiceStatus = 'DRAFT' | 'ISSUED' | 'PAID' | 'OVERDUE' | 'VOID';
+
+export type InvoiceItem = {
+  id: string;
+  description: string;
+  quantity: string;
+  unit_price: string;
+  amount: string;
+};
+
+export type Invoice = {
+  id: string;
+  invoice_number: string | null;
+  customer: { id: string; name: string } | null;
+  project: { id: string; name: string } | null;
+  status: InvoiceStatus;
+  currency: string;
+  subtotal: string;
+  tax_amount: string;
+  total_amount: string;
+  issued_at: string | null;
+  due_at: string | null;
+  paid_at: string | null;
+  notes: string | null;
+  items?: InvoiceItem[];
+  created_at: string;
+};

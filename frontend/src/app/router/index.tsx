@@ -2,6 +2,8 @@ import { Navigate, RouterProvider, createHashRouter } from 'react-router-dom';
 
 import { AuthProvider } from '../../auth/auth-context';
 import { AppShell } from '../../components/layout/AppShell';
+import { ApprovalDetailPage } from '../../features/approvals/ApprovalDetailPage';
+import { ApprovalsPage } from '../../features/approvals/ApprovalsPage';
 import { CustomersPage } from '../../features/customers/CustomersPage';
 import { HomePage } from '../../features/dashboard/HomePage';
 import { LoginPage } from '../../features/auth/LoginPage';
@@ -30,7 +32,8 @@ export const router = createHashRouter([
           { path: 'projects/:projectId', element: <HomePage /> },
           { path: 'requests', element: <RequestsPage /> },
           { path: 'requests/:requestId', element: <RequestDetailPage /> },
-          { path: 'approvals', element: <HomePage /> },
+          { path: 'approvals', element: <ApprovalsPage /> },
+          { path: 'approvals/:approvalId', element: <ApprovalDetailPage /> },
           { path: 'invoices', element: <HomePage /> },
           { path: 'settings/sla', element: <SlaPoliciesPage /> },
         ],
