@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -11,23 +12,29 @@ class DatabaseSeeder extends Seeder
     use WithoutModelEvents;
 
     /**
-     * Seed the application's database.
+     * Seed the application's database. The demo dataset (PRD §56) is only
+     * created when the Merlion tenant does not exist yet, so `migrate --seed`
+     * stays idempotent on repeat runs.
      */
     public function run(): void
     {
-        // Permission rows are global (not tenant-scoped) and the catalog is
-        // idempotent, so it is safe to seed for every environment. Organization
-        // SLA defaults are deliberately skipped here — Phase 10 owns rich
-        // seeding and orgs create their own policies/calendars via the API.
         $this->call([
             PermissionSeeder::class,
         ]);
 
-        // User::factory(10)->create();
+        if (! User::query()->where('email', 'admin@demo.opsflow.local')->exists()) {
+            $this->call(DemoSeeder::class);
+        }
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        $org = Organization::query()->where('slug', 'merlion-digital')->first()
+            ?? Organization::query()->firstOrCreate(
+                ['slug' => 'demo'],
+                ['name' => 'Demo Organization', 'country_code' => 'SG', 'timezone' => 'Asia/Singapore', 'currency' => 'SGD', 'status' => 'ACTIVE'],
+            );
+
+        User::query()->firstOrCreate(
+            ['email' => 'test@example.com'],
+            ['name' => 'Test User', 'organization_id' => $org->id, 'status' => 'ACTIVE'],
+        );
     }
 }

@@ -2,7 +2,7 @@
 
 > OpsFlow is a production-oriented multi-tenant operations platform built with Laravel 13 and React 19 to demonstrate modern full-stack engineering, relational data modeling, secure tenant isolation, workflow automation, SLA tracking, event-driven processing, real-time collaboration, automated testing, and deployable infrastructure.
 
-**Status: Phase 0 — Foundation** see docs/phases.
+**Status:** Phases 0–10 implemented across tenancy/RBAC, customers/projects, the service-request workflow engine, comments/files/real-time, the SLA engine, approvals, invoicing, dashboards and production hardening. See `docs/` for the full PRD and the ADRs.
 
 ## Tech Stack
 
@@ -11,6 +11,20 @@
 | Backend     | PHP 8.5 · Laravel 13 · Sanctum · Horizon · Reverb · Pest 4 · PHPStan · Pint        |
 | Frontend    | React 19 · TypeScript · Vite 8 · TanStack Query v5 · MUI · React Hook Form · Zod   |
 | Data / Ops  | PostgreSQL 18 · Redis 8 · S3 (MinIO) · Nginx · Docker Compose · GitHub Actions      |
+
+## Demo
+
+`make setup` seeds the **Merlion Digital Services** tenant with ~120 service
+requests spread across statuses and SLA outcomes so the dashboard is meaningful
+immediately. Demo logins (password `password` for all):
+
+| Role     | Email                          |
+| -------- | ------------------------------ |
+| Admin    | admin@demo.opsflow.local       |
+| Manager  | manager@demo.opsflow.local     |
+| Operator | operator@demo.opsflow.local    |
+| Finance  | finance@demo.opsflow.local     |
+| Customer | customer@demo.opsflow.local    |
 
 ## Local Setup
 
@@ -58,7 +72,7 @@ Run `make help` for the full list.
 backend/    # Laravel 13 API (app, routes/api/v1, Pest tests)
 frontend/   # React 19 + TypeScript SPA (Vite, TanStack Query, MUI)
 docker/     # Nginx config, PHP-FPM and Node Dockerfiles
-docs/       # PRD and (later) ADRs
+docs/       # PRD and ADRs (docs/adr/0001-0007)
 .github/    # CI workflow, PR template, Dependabot
 compose.yaml
 Makefile
@@ -72,10 +86,9 @@ Makefile
 - **CI:** GitHub Actions runs Pint → PHPStan → Pest and ESLint → tsc → Prettier →
   Vitest → Vite build on every PR (`.github/workflows/ci.yml`).
 
-## Roadmap
+## Documentation
 
-The full functional specification lives in
-[docs/OpsFlow_Complete_Technical_PRD.md](docs/OpsFlow_Complete_Technical_PRD.md):
-tenancy & RBAC, customers/projects, service request workflow, real-time comments,
-SLA engine, approvals, invoicing, dashboards, and portfolio polish are delivered in
-phases after this foundation.
+- Full specification: [docs/OpsFlow_Complete_Technical_PRD.md](docs/OpsFlow_Complete_Technical_PRD.md)
+- Architecture decision records: `docs/adr/` (monolith, tenancy, auth, PostgreSQL,
+  TanStack Query, after-commit events, SLA calendar)
+- Live API reference: `GET /docs/api` (Swagger UI) when the backend is running
