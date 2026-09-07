@@ -73,3 +73,59 @@ export type ProjectFilters = {
   customer_id?: string;
   sort?: string;
 };
+
+export type ServiceRequestStatus =
+  | 'NEW'
+  | 'TRIAGED'
+  | 'IN_PROGRESS'
+  | 'WAITING_CUSTOMER'
+  | 'WAITING_INTERNAL'
+  | 'ESCALATED'
+  | 'RESOLVED'
+  | 'CLOSED'
+  | 'CANCELLED';
+
+export type ServiceRequestPriority = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+
+export type ServiceRequest = {
+  id: string;
+  request_number: string;
+  title: string;
+  description: string;
+  status: ServiceRequestStatus;
+  priority: ServiceRequestPriority;
+  customer: { id: string; name: string } | null;
+  project: { id: string; name: string } | null;
+  assignee: { id: string; name: string } | null;
+  category: { id: string; name: string; color: string | null } | null;
+  requested_by: { id: string; name: string };
+  created_at: string;
+  updated_at: string;
+  version: number;
+  first_response_due_at: string | null;
+  resolution_due_at: string | null;
+  resolved_at: string | null;
+  closed_at: string | null;
+};
+
+export type ServiceRequestEvent = {
+  id: string;
+  type: 'STATUS_CHANGED' | 'ASSIGNED' | 'PRIORITY_CHANGED' | 'COMMENT' | 'ATTACHMENT';
+  actor: { id: string; name: string } | null;
+  from_value: string | null;
+  to_value: string | null;
+  note: string | null;
+  created_at: string;
+};
+
+export type RequestFilters = {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  status?: ServiceRequestStatus[];
+  priority?: ServiceRequestPriority[];
+  assigned_to?: string;
+  customer_id?: string;
+  project_id?: string;
+  sort?: string;
+};

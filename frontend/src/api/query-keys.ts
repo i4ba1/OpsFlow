@@ -14,3 +14,12 @@ export const projectKeys = {
   details: () => [...projectKeys.all, 'detail'] as const,
   detail: (id: string) => [...projectKeys.details(), id] as const,
 };
+
+export const requestKeys = {
+  all: ['service-requests'] as const,
+  lists: () => [...requestKeys.all, 'list'] as const,
+  list: (filters: unknown) => [...requestKeys.lists(), filters] as const,
+  details: () => [...requestKeys.all, 'detail'] as const,
+  detail: (id: string) => [...requestKeys.details(), id] as const,
+  history: (id: string) => [...requestKeys.detail(id), 'history'] as const,
+};

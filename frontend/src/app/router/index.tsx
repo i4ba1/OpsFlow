@@ -6,6 +6,8 @@ import { CustomersPage } from '../../features/customers/CustomersPage';
 import { HomePage } from '../../features/dashboard/HomePage';
 import { LoginPage } from '../../features/auth/LoginPage';
 import { ProjectsPage } from '../../features/projects/ProjectsPage';
+import { RequestDetailPage } from '../../features/requests/RequestDetailPage';
+import { RequestsPage } from '../../features/requests/RequestsPage';
 import { RequireAuth } from '../../permissions/guards';
 
 export const router = createHashRouter([
@@ -25,7 +27,8 @@ export const router = createHashRouter([
           { path: 'customers/:customerId', element: <HomePage /> },
           { path: 'projects', element: <ProjectsPage /> },
           { path: 'projects/:projectId', element: <HomePage /> },
-          { path: 'requests', element: <HomePage /> },
+          { path: 'requests', element: <RequestsPage /> },
+          { path: 'requests/:requestId', element: <RequestDetailPage /> },
           { path: 'approvals', element: <HomePage /> },
           { path: 'invoices', element: <HomePage /> },
         ],
