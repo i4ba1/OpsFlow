@@ -5,11 +5,14 @@ namespace App\Actions\ServiceRequests;
 use App\Domain\ServiceRequests\ServiceRequestWorkflow;
 use App\Enums\ServiceRequestEventType;
 use App\Enums\ServiceRequestStatus;
+use App\Events\RequestUpdatedBroadcast;
 use App\Events\ServiceRequestStatusChanged as ServiceRequestStatusChangedEvent;
 use App\Exceptions\InvalidTransitionException;
 use App\Exceptions\ServiceRequestVersionConflictException;
 use App\Models\ServiceRequest;
 use App\Models\User;
+use App\Support\Notifications\NotificationDispatcher;
+use App\Support\Notifications\NotificationType;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -81,17 +84,61 @@ final readonly class TransitionServiceRequest
                 'note' => $note,
             ]);
 
-            DB::afterCommit(
-                fn () => ServiceRequestStatusChangedEvent::dispatch(
-                    $locked->fresh(),
-                    $from,
-                    $target,
-                    $actor,
-                )
+            $fresh = $locked->fresh();
+
+            $this->notifyInterested($fresh, $target, $actor);
+
+            DB::afterCommit(function () use ($fresh, $from, $target, $actor): void {
+                ServiceRequestStatusChangedEvent::dispatch($fresh, $from, $target, $actor);
+                RequestUpdatedBroadcast::dispatch($fresh);
+            });
+
+            return $fresh;
+        });
+    }
+
+    /**
+     * Notify the people watching the request about status changes (PRD §18):
+     * the requester when the request reaches RESOLVED, and the assignee for
+     * every other transition away from the terminal states. Self-actions never
+     * notify.
+     */
+    private function notifyInterested(ServiceRequest $serviceRequest, ServiceRequestStatus $target, User $actor): void
+    {
+        if ($target === ServiceRequestStatus::Resolved && $serviceRequest->requested_by !== $actor->id) {
+            NotificationDispatcher::dispatch(
+                User::query()->findOrFail($serviceRequest->requested_by),
+                $actor,
+                NotificationType::REQUEST_RESOLVED,
+                [
+                    'service_request_id' => $serviceRequest->id,
+                    'request_number' => $serviceRequest->request_number,
+                    'title' => $serviceRequest->title,
+                ],
+                'service_request',
+                $serviceRequest->id,
             );
 
-            return $locked->fresh();
-        });
+            return;
+        }
+
+        if ($serviceRequest->assigned_to === null || $serviceRequest->assigned_to === $actor->id) {
+            return;
+        }
+
+        NotificationDispatcher::dispatch(
+            User::query()->findOrFail($serviceRequest->assigned_to),
+            $actor,
+            NotificationType::REQUEST_STATUS_CHANGED,
+            [
+                'service_request_id' => $serviceRequest->id,
+                'request_number' => $serviceRequest->request_number,
+                'title' => $serviceRequest->title,
+                'to' => $target->value,
+            ],
+            'service_request',
+            $serviceRequest->id,
+        );
     }
 
     private function assertVersion(?int $expectedVersion, int $currentVersion): void

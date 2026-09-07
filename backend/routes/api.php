@@ -1,10 +1,13 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Attachment\AttachmentController;
 use App\Http\Controllers\Api\V1\Auth\LoginController;
 use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\Auth\MeController;
+use App\Http\Controllers\Api\V1\Comment\CommentController;
 use App\Http\Controllers\Api\V1\Customer\CustomerContactController;
 use App\Http\Controllers\Api\V1\Customer\CustomerController;
+use App\Http\Controllers\Api\V1\Notification\NotificationController;
 use App\Http\Controllers\Api\V1\OrganizationController;
 use App\Http\Controllers\Api\V1\PingController;
 use App\Http\Controllers\Api\V1\Project\ProjectController;
@@ -65,5 +68,19 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::post('/service-requests/{serviceRequest}/priority', [ServiceRequestController::class, 'priority']);
         Route::post('/service-requests/{serviceRequest}/transition', [ServiceRequestController::class, 'transition']);
         Route::get('/service-requests/{serviceRequest}/history', [ServiceRequestController::class, 'history']);
+        Route::get('/service-requests/{serviceRequest}/comments', [CommentController::class, 'index']);
+        Route::post('/service-requests/{serviceRequest}/comments', [CommentController::class, 'store']);
+        Route::post('/service-requests/{serviceRequest}/attachments', [AttachmentController::class, 'store']);
+
+        Route::patch('/comments/{comment}', [CommentController::class, 'update']);
+        Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
+
+        Route::get('/attachments/{attachment}/download', [AttachmentController::class, 'download']);
+        Route::delete('/attachments/{attachment}', [AttachmentController::class, 'destroy']);
+
+        Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::post('/notifications/read-all', [NotificationController::class, 'readAll']);
+        Route::post('/notifications/{notification}/read', [NotificationController::class, 'read']);
     });
 });
