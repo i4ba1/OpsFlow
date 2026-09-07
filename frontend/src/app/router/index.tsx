@@ -9,6 +9,7 @@ import { ProjectsPage } from '../../features/projects/ProjectsPage';
 import { RequestDetailPage } from '../../features/requests/RequestDetailPage';
 import { RequestsPage } from '../../features/requests/RequestsPage';
 import { RequireAuth } from '../../permissions/guards';
+import { SlaPoliciesPage } from '../../features/sla/SlaPoliciesPage';
 
 export const router = createHashRouter([
   {
@@ -31,6 +32,7 @@ export const router = createHashRouter([
           { path: 'requests/:requestId', element: <RequestDetailPage /> },
           { path: 'approvals', element: <HomePage /> },
           { path: 'invoices', element: <HomePage /> },
+          { path: 'settings/sla', element: <SlaPoliciesPage /> },
         ],
       },
     ],

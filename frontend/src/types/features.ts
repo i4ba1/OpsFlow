@@ -159,3 +159,33 @@ export type AppNotification = {
   resource: { type: string; id: string } | null;
   created_at: string;
 };
+
+export type SlaState = 'HEALTHY' | 'AT_RISK' | 'BREACHED' | 'MET' | null;
+
+export type SlaTarget = {
+  id: string;
+  priority: ServiceRequestPriority;
+  first_response_minutes: number;
+  resolution_minutes: number;
+  warning_threshold_percent: number;
+};
+
+export type SlaPolicy = {
+  id: string;
+  name: string;
+  description: string | null;
+  timezone: string;
+  business_calendar_id: string | null;
+  active: boolean;
+  targets: SlaTarget[];
+  created_at: string;
+};
+
+export type BusinessCalendar = {
+  id: string;
+  name: string;
+  description: string | null;
+  timezone: string;
+  hours: { id: string; day_of_week: number; opens_at: string; closes_at: string }[];
+  holidays: { id: string; name: string; date: string }[];
+};

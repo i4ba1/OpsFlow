@@ -23,3 +23,16 @@ export const requestKeys = {
   detail: (id: string) => [...requestKeys.details(), id] as const,
   history: (id: string) => [...requestKeys.detail(id), 'history'] as const,
 };
+
+export const slaKeys = {
+  all: ['sla-policies'] as const,
+  lists: () => [...slaKeys.all, 'list'] as const,
+  list: (filters: unknown) => [...slaKeys.lists(), filters] as const,
+  details: () => [...slaKeys.all, 'detail'] as const,
+  detail: (id: string) => [...slaKeys.details(), id] as const,
+};
+
+export const calendarKeys = {
+  all: ['business-calendars'] as const,
+  lists: () => [...calendarKeys.all, 'list'] as const,
+};

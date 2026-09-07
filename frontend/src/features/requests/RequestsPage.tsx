@@ -22,8 +22,9 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
-import type { ServiceRequestPriority } from '../../types/features';
+import type { ServiceRequest, ServiceRequestPriority } from '../../types/features';
 import { requestKeys } from '../../api/query-keys';
+import { slaSummary } from '../sla/sla-utils';
 import { fetchRequests } from './request-api';
 
 const searchSchema = z.object({ search: z.string() });
@@ -88,6 +89,7 @@ export function RequestsPage() {
               <TableCell>Customer</TableCell>
               <TableCell>Priority</TableCell>
               <TableCell>Status</TableCell>
+              <TableCell>SLA</TableCell>
               <TableCell>Assignee</TableCell>
               <TableCell>Updated</TableCell>
             </TableRow>
@@ -118,6 +120,9 @@ export function RequestsPage() {
                 </TableCell>
                 <TableCell>
                   <Chip size="small" label={request.status} />
+                </TableCell>
+                <TableCell>
+                  <SlaCell request={request} />
                 </TableCell>
                 <TableCell>{request.assignee?.name ?? '—'}</TableCell>
                 <TableCell>
@@ -152,6 +157,36 @@ export function RequestsPage() {
           />
         )}
       </TableContainer>
+    </Stack>
+  );
+}
+
+function SlaCell({ request }: { request: ServiceRequest }) {
+  const { state, label, remainingLabel } = slaSummary(request);
+  const color =
+    state === 'BREACHED'
+      ? 'error'
+      : state === 'AT_RISK'
+        ? 'warning'
+        : state === 'MET'
+          ? 'success'
+          : 'default';
+
+  return (
+    <Stack spacing={0.25}>
+      {request.resolution_due_at !== null && (
+        <Chip size="small" variant="outlined" color={color} label={label} />
+      )}
+      {remainingLabel !== null && (
+        <Typography variant="caption" color="text.secondary">
+          {remainingLabel} left
+        </Typography>
+      )}
+      {request.resolution_due_at === null && (
+        <Typography variant="caption" color="text.secondary">
+          —
+        </Typography>
+      )}
     </Stack>
   );
 }
