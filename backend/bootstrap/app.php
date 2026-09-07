@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Middleware\AssignRequestId;
+use App\Http\Middleware\CheckPermission;
+use App\Http\Middleware\ResolveTenant;
+use App\Support\Http\ApiExceptionRenderer;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,9 +21,21 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->statefulApi();
         $middleware->prependToGroup('api', AssignRequestId::class);
+        $middleware->appendToGroup('api', ResolveTenant::class);
+        $middleware->alias([
+            'permission' => CheckPermission::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        $exceptions->render(function (Throwable $exception, Request $request) {
+            if (! $request->is('api/*') && ! $request->expectsJson()) {
+                return null;
+            }
+
+            return app(ApiExceptionRenderer::class)->render($request, $exception);
+        });
     })->create();

@@ -7,18 +7,27 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Users, password resets and sessions. Users belong to exactly one
+     * organization whose id acts as their active tenant membership.
      */
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
+            $table->uuid('organization_id');
+            $table->foreign('organization_id')
+                ->references('id')->on('organizations')
+                ->cascadeOnDelete();
             $table->string('name');
             $table->string('email')->unique();
+            $table->string('status', 20)->default('INVITED')->index();
+            $table->string('timezone', 64)->default('Asia/Singapore');
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->string('password')->nullable();
             $table->rememberToken();
             $table->timestamps();
+
+            $table->index(['organization_id', 'status']);
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
@@ -29,7 +38,7 @@ return new class extends Migration
 
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable()->index();
+            $table->uuid('user_id')->nullable()->index();
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();
             $table->longText('payload');
@@ -37,9 +46,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('users');
