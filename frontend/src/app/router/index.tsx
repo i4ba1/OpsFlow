@@ -6,6 +6,8 @@ import { ApprovalDetailPage } from '../../features/approvals/ApprovalDetailPage'
 import { ApprovalsPage } from '../../features/approvals/ApprovalsPage';
 import { CustomersPage } from '../../features/customers/CustomersPage';
 import { HomePage } from '../../features/dashboard/HomePage';
+import { InvoiceDetailPage } from '../../features/invoices/InvoiceDetailPage';
+import { InvoicesPage } from '../../features/invoices/InvoicesPage';
 import { LoginPage } from '../../features/auth/LoginPage';
 import { ProjectsPage } from '../../features/projects/ProjectsPage';
 import { RequestDetailPage } from '../../features/requests/RequestDetailPage';
@@ -34,7 +36,8 @@ export const router = createHashRouter([
           { path: 'requests/:requestId', element: <RequestDetailPage /> },
           { path: 'approvals', element: <ApprovalsPage /> },
           { path: 'approvals/:approvalId', element: <ApprovalDetailPage /> },
-          { path: 'invoices', element: <HomePage /> },
+          { path: 'invoices', element: <InvoicesPage /> },
+          { path: 'invoices/:invoiceId', element: <InvoiceDetailPage /> },
           { path: 'settings/sla', element: <SlaPoliciesPage /> },
         ],
       },
