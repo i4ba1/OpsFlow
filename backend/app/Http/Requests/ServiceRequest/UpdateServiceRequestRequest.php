@@ -24,6 +24,12 @@ class UpdateServiceRequestRequest extends FormRequest
                 Rule::exists('service_request_categories', 'id')
                     ->where('organization_id', $organizationId),
             ],
+            'sla_policy_id' => [
+                'nullable',
+                'uuid',
+                Rule::exists('sla_policies', 'id')
+                    ->where('organization_id', $organizationId),
+            ],
         ];
     }
 }

@@ -34,6 +34,15 @@ class StoreServiceRequestRequest extends FormRequest
                 Rule::exists('service_request_categories', 'id')
                     ->where('organization_id', $organizationId),
             ],
+            // Phase 5: an SLA policy for the request. Org-scoped; when the
+            // policy (or its priority target) is inactive the request simply
+            // ends up without SLA due dates.
+            'sla_policy_id' => [
+                'nullable',
+                'uuid',
+                Rule::exists('sla_policies', 'id')
+                    ->where('organization_id', $organizationId),
+            ],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:10000'],
             'priority' => ['nullable', Rule::enum(ServiceRequestPriority::class)],
@@ -46,6 +55,7 @@ class StoreServiceRequestRequest extends FormRequest
             'customer_id.exists' => 'The selected customer is invalid.',
             'project_id.exists' => 'The selected project is invalid.',
             'category_id.exists' => 'The selected category is invalid.',
+            'sla_policy_id.exists' => 'The selected SLA policy is invalid.',
         ];
     }
 }

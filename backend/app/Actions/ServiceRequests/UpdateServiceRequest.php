@@ -2,6 +2,7 @@
 
 namespace App\Actions\ServiceRequests;
 
+use App\Domain\SLA\SlaPolicyService;
 use App\Exceptions\RequestNotEditableException;
 use App\Exceptions\ServiceRequestVersionConflictException;
 use App\Models\ServiceRequest;
@@ -9,14 +10,19 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Update the mutable fields of a non-terminal service request (title,
- * description, category). The client must echo the version it observed
- * (optimistic locking, PRD §27): a mismatch raises a 409 conflict and the
- * row's version is bumped on every successful write.
+ * description, category, SLA policy). The client must echo the version it
+ * observed (optimistic locking, PRD §27): a mismatch raises a 409 conflict and
+ * the row's version is bumped on every successful write. Attaching or swapping
+ * the SLA policy recomputes the due dates from the active policy.
  */
 final readonly class UpdateServiceRequest
 {
+    public function __construct(
+        private SlaPolicyService $slaPolicies,
+    ) {}
+
     /**
-     * @param  array{title?: string, description?: string, category_id?: string|null}  $data
+     * @param  array{title?: string, description?: string, category_id?: string|null, sla_policy_id?: string|null}  $data
      *
      * @throws RequestNotEditableException
      * @throws ServiceRequestVersionConflictException
@@ -37,9 +43,17 @@ final readonly class UpdateServiceRequest
                 throw new RequestNotEditableException;
             }
 
+            $policyChanged = array_key_exists('sla_policy_id', $data)
+                && $data['sla_policy_id'] !== $locked->sla_policy_id;
+
             $locked->fill($data);
             $locked->version++;
             $locked->save();
+
+            if ($policyChanged) {
+                $locked->loadMissing(['policy.targets', 'policy.businessCalendar']);
+                $this->slaPolicies->applyToRequest($locked);
+            }
 
             return $locked->fresh();
         });

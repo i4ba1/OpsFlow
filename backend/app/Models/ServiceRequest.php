@@ -41,7 +41,13 @@ use Illuminate\Support\Carbon;
  * @property User $requestedBy
  * @property User|null $assignee
  * @property ServiceRequestCategory|null $category
+ * @property SlaPolicy|null $policy
  * @property Collection<int, ServiceRequestEvent> $events
+ * @property string|null $policy_id SLA monitor join projection (sla_policies.id)
+ * @property string|null $timezone SLA monitor join projection (policy timezone)
+ * @property string|null $business_calendar_id SLA monitor join projection
+ * @property int|null $resolution_minutes SLA monitor join projection
+ * @property int|null $warning_threshold_percent SLA monitor join projection
  *
  * @method static ServiceRequestFactory factory(...$parameters)
  * @method static Builder|ServiceRequest query()
@@ -94,6 +100,18 @@ class ServiceRequest extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(ServiceRequestCategory::class);
+    }
+
+    /** @return BelongsTo<SlaPolicy, $this> */
+    public function policy(): BelongsTo
+    {
+        return $this->belongsTo(SlaPolicy::class, 'sla_policy_id');
+    }
+
+    /** @return HasMany<SlaEvent, $this> */
+    public function slaEvents(): HasMany
+    {
+        return $this->hasMany(SlaEvent::class);
     }
 
     /** @return BelongsTo<User, $this> */

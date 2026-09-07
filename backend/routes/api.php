@@ -14,6 +14,8 @@ use App\Http\Controllers\Api\V1\Project\ProjectController;
 use App\Http\Controllers\Api\V1\Role\PermissionCatalogController;
 use App\Http\Controllers\Api\V1\Role\RoleController;
 use App\Http\Controllers\Api\V1\ServiceRequest\ServiceRequestController;
+use App\Http\Controllers\Api\V1\SLA\BusinessCalendarController;
+use App\Http\Controllers\Api\V1\SLA\SlaPolicyController;
 use App\Http\Controllers\Api\V1\User\ActivateUserController;
 use App\Http\Controllers\Api\V1\User\AssignUserRolesController;
 use App\Http\Controllers\Api\V1\User\DisableUserController;
@@ -71,6 +73,16 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::get('/service-requests/{serviceRequest}/comments', [CommentController::class, 'index']);
         Route::post('/service-requests/{serviceRequest}/comments', [CommentController::class, 'store']);
         Route::post('/service-requests/{serviceRequest}/attachments', [AttachmentController::class, 'store']);
+
+        Route::get('/sla-policies', [SlaPolicyController::class, 'index']);
+        Route::post('/sla-policies', [SlaPolicyController::class, 'store']);
+        Route::get('/sla-policies/{slaPolicy}', [SlaPolicyController::class, 'show']);
+        Route::patch('/sla-policies/{slaPolicy}', [SlaPolicyController::class, 'update']);
+
+        Route::get('/business-calendars', [BusinessCalendarController::class, 'index']);
+        Route::post('/business-calendars', [BusinessCalendarController::class, 'store']);
+        Route::get('/business-calendars/{businessCalendar}', [BusinessCalendarController::class, 'show']);
+        Route::patch('/business-calendars/{businessCalendar}', [BusinessCalendarController::class, 'update']);
 
         Route::patch('/comments/{comment}', [CommentController::class, 'update']);
         Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
