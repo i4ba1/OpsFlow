@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\PingController;
 use App\Http\Controllers\Api\V1\Project\ProjectController;
 use App\Http\Controllers\Api\V1\Role\PermissionCatalogController;
 use App\Http\Controllers\Api\V1\Role\RoleController;
+use App\Http\Controllers\Api\V1\ServiceRequest\ServiceRequestController;
 use App\Http\Controllers\Api\V1\User\ActivateUserController;
 use App\Http\Controllers\Api\V1\User\AssignUserRolesController;
 use App\Http\Controllers\Api\V1\User\DisableUserController;
@@ -55,5 +56,14 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::get('/projects/{project}', [ProjectController::class, 'show']);
         Route::patch('/projects/{project}', [ProjectController::class, 'update']);
         Route::post('/projects/{project}/archive', [ProjectController::class, 'archive']);
+
+        Route::get('/service-requests', [ServiceRequestController::class, 'index']);
+        Route::post('/service-requests', [ServiceRequestController::class, 'store']);
+        Route::get('/service-requests/{serviceRequest}', [ServiceRequestController::class, 'show']);
+        Route::patch('/service-requests/{serviceRequest}', [ServiceRequestController::class, 'update']);
+        Route::post('/service-requests/{serviceRequest}/assign', [ServiceRequestController::class, 'assign']);
+        Route::post('/service-requests/{serviceRequest}/priority', [ServiceRequestController::class, 'priority']);
+        Route::post('/service-requests/{serviceRequest}/transition', [ServiceRequestController::class, 'transition']);
+        Route::get('/service-requests/{serviceRequest}/history', [ServiceRequestController::class, 'history']);
     });
 });
