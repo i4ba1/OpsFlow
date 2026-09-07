@@ -17,6 +17,7 @@ import { useParams } from 'react-router-dom';
 
 import type { ServiceRequestStatus } from '../../types/features';
 import { requestKeys } from '../../api/query-keys';
+import { CommentsSection } from './CommentsSection';
 import { fetchRequest, fetchRequestHistory } from './request-api';
 
 const STATUS_LABEL: Record<ServiceRequestStatus, string> = {
@@ -80,41 +81,45 @@ export function RequestDetailPage() {
           </CardContent>
         </Card>
 
-        <Card variant="outlined" sx={{ width: 280 }}>
-          <CardContent>
-            <Typography variant="subtitle2" gutterBottom>
-              Details
-            </Typography>
-            <Divider sx={{ mb: 1 }} />
-            <List dense disablePadding>
-              <ListItem disableGutters>
-                <ListItemText primary="Customer" secondary={request.customer?.name ?? '—'} />
-              </ListItem>
-              <ListItem disableGutters>
-                <ListItemText primary="Project" secondary={request.project?.name ?? '—'} />
-              </ListItem>
-              <ListItem disableGutters>
-                <ListItemText
-                  primary="Assignee"
-                  secondary={request.assignee?.name ?? 'Unassigned'}
-                />
-              </ListItem>
-              <ListItem disableGutters>
-                <ListItemText
-                  primary="Requested by"
-                  secondary={request.requested_by?.name ?? '—'}
-                />
-              </ListItem>
-              <ListItem disableGutters>
-                <ListItemText
-                  primary="Created"
-                  secondary={new Date(request.created_at).toLocaleString()}
-                />
-              </ListItem>
-            </List>
-          </CardContent>
-        </Card>
+        <Box sx={{ width: 280 }}>
+          <Card variant="outlined">
+            <CardContent>
+              <Typography variant="subtitle2" gutterBottom>
+                Details
+              </Typography>
+              <Divider sx={{ mb: 1 }} />
+              <List dense disablePadding>
+                <ListItem disableGutters>
+                  <ListItemText primary="Customer" secondary={request.customer?.name ?? '—'} />
+                </ListItem>
+                <ListItem disableGutters>
+                  <ListItemText primary="Project" secondary={request.project?.name ?? '—'} />
+                </ListItem>
+                <ListItem disableGutters>
+                  <ListItemText
+                    primary="Assignee"
+                    secondary={request.assignee?.name ?? 'Unassigned'}
+                  />
+                </ListItem>
+                <ListItem disableGutters>
+                  <ListItemText
+                    primary="Requested by"
+                    secondary={request.requested_by?.name ?? '—'}
+                  />
+                </ListItem>
+                <ListItem disableGutters>
+                  <ListItemText
+                    primary="Created"
+                    secondary={new Date(request.created_at).toLocaleString()}
+                  />
+                </ListItem>
+              </List>
+            </CardContent>
+          </Card>
+        </Box>
       </Stack>
+
+      <CommentsSection serviceRequestId={request.id} />
 
       <Card variant="outlined">
         <CardContent>

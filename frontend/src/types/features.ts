@@ -129,3 +129,33 @@ export type RequestFilters = {
   project_id?: string;
   sort?: string;
 };
+
+export type Comment = {
+  id: string;
+  service_request_id: string;
+  body: string;
+  visibility: 'PUBLIC' | 'INTERNAL';
+  author: { id: string; name: string } | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Attachment = {
+  id: string;
+  service_request_id: string | null;
+  original_name: string;
+  mime_type: string;
+  size_bytes: number;
+  created_at: string;
+};
+
+export type AppNotification = {
+  id: string;
+  type: string;
+  data: Record<string, unknown> | null;
+  read_at: string | null;
+  read: boolean;
+  actor: { id: string; name: string } | null;
+  resource: { type: string; id: string } | null;
+  created_at: string;
+};
