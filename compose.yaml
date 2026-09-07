@@ -1,0 +1,179 @@
+name: opsflow
+
+services:
+  nginx:
+    image: nginx:1.28-alpine
+    container_name: opsflow-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+      - frontend
+      - reverb
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+    container_name: opsflow-backend
+    env_file:
+      - path: ./backend/.env
+        required: false
+    volumes:
+      - ./backend:/var/www/html
+      - backend_vendor:/var/www/html/vendor
+      - backend_storage:/var/www/html/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/frontend/Dockerfile
+    container_name: opsflow-frontend
+    env_file:
+      - path: ./frontend/.env
+        required: false
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    restart: unless-stopped
+
+  queue:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+    container_name: opsflow-queue
+    env_file:
+      - path: ./backend/.env
+        required: false
+    command: ["php", "artisan", "horizon"]
+    volumes:
+      - ./backend:/var/www/html
+      - backend_vendor:/var/www/html/vendor
+      - backend_storage:/var/www/html/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+    container_name: opsflow-scheduler
+    env_file:
+      - path: ./backend/.env
+        required: false
+    command: ["php", "artisan", "schedule:work"]
+    volumes:
+      - ./backend:/var/www/html
+      - backend_vendor:/var/www/html/vendor
+      - backend_storage:/var/www/html/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  reverb:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+    container_name: opsflow-reverb
+    env_file:
+      - path: ./backend/.env
+        required: false
+    command: ["php", "artisan", "reverb:start", "--host=0.0.0.0", "--port=8080"]
+    volumes:
+      - ./backend:/var/www/html
+      - backend_vendor:/var/www/html/vendor
+      - backend_storage:/var/www/html/storage
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:18-alpine
+    container_name: opsflow-postgres
+    environment:
+      POSTGRES_DB: opsflow
+      POSTGRES_USER: opsflow
+      POSTGRES_PASSWORD: opsflow
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U opsflow -d opsflow"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:8-alpine
+    container_name: opsflow-redis
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: opsflow-mailpit
+    ports:
+      - "8025:8025"
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    container_name: opsflow-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: opsflow
+      MINIO_ROOT_PASSWORD: opsflow-secret
+    ports:
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: opsflow-minio-init
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        mc alias set local http://minio:9000 opsflow opsflow-secret &&
+        mc mb --ignore-existing local/opsflow &&
+        mc anonymous set none local/opsflow
+    depends_on:
+      minio:
+        condition: service_healthy
+
+volumes:
+  backend_vendor:
+  backend_storage:
+  frontend_node_modules:
+  pgdata:
+  redis_data:
+  minio_data:

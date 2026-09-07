@@ -1,0 +1,35 @@
+.env
+*.local
+
+# Local tooling state
+.commandcode/
+
+# Backend
+/backend/vendor/
+/backend/.env
+/backend/.env.backup
+/backend/.phpunit.cache
+/backend/storage/*.key
+/backend/node_modules/
+/backend/public/build
+/backend/public/hot
+/backend/public/storage
+
+# Frontend
+/frontend/node_modules/
+/frontend/dist/
+/frontend/.env
+/frontend/coverage/
+/frontend/playwright-report/
+/frontend/test-results/
+
+# Tooling
+.phpstan.cache/
+.php-cs-fixer.cache
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,115 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (Pint, PHPStan, Pest)
+    runs-on: ubuntu-latest
+    env:
+      COMPOSER_ALLOW_SUPERUSER: 1
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: opsflow_test
+          POSTGRES_USER: opsflow
+          POSTGRES_PASSWORD: opsflow
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U opsflow -d opsflow_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_pgsql, pgsql, redis, pcntl, intl, bcmath, zip
+          coverage: none
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: backend/vendor
+          key: composer-${{ runner.os }}-${{ hashFiles('backend/composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Laravel Pint check
+        run: vendor/bin/pint --test
+
+      - name: PHPStan
+        run: vendor/bin/phpstan analyse --memory-limit=1G --no-progress
+
+      - name: Prepare environment and migrate
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: opsflow_test
+          DB_USERNAME: opsflow
+          DB_PASSWORD: opsflow
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+          php artisan migrate --force
+
+      - name: Pest test suite
+        run: php artisan test
+
+      - name: Composer audit
+        run: composer audit
+
+  frontend:
+    name: Frontend (ESLint, TS, Vitest, Build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: TypeScript check
+        run: npm run typecheck
+
+      - name: Prettier check
+        run: npm run format:check
+
+      - name: Vitest
+        run: npm run test
+
+      - name: Production build
+        run: npm run build
+
+      - name: npm audit
+        run: npm audit --audit-level=high
