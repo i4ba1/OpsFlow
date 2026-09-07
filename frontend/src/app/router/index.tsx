@@ -5,6 +5,7 @@ import { AppShell } from '../../components/layout/AppShell';
 import { ApprovalDetailPage } from '../../features/approvals/ApprovalDetailPage';
 import { ApprovalsPage } from '../../features/approvals/ApprovalsPage';
 import { CustomersPage } from '../../features/customers/CustomersPage';
+import { DashboardPage } from '../../features/dashboard/DashboardPage';
 import { HomePage } from '../../features/dashboard/HomePage';
 import { InvoiceDetailPage } from '../../features/invoices/InvoiceDetailPage';
 import { InvoicesPage } from '../../features/invoices/InvoicesPage';
@@ -27,7 +28,7 @@ export const router = createHashRouter([
         path: '/app',
         element: <AppShell />,
         children: [
-          { index: true, element: <HomePage /> },
+          { index: true, element: <DashboardPage /> },
           { path: 'customers', element: <CustomersPage /> },
           { path: 'customers/:customerId', element: <HomePage /> },
           { path: 'projects', element: <ProjectsPage /> },

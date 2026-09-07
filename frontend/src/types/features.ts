@@ -235,3 +235,33 @@ export type Invoice = {
   items?: InvoiceItem[];
   created_at: string;
 };
+
+export type DashboardOverview = {
+  open_requests: number;
+  critical_open: number;
+  at_risk_sla: number;
+  breached_sla: number;
+  sla_compliance_percent: number | null;
+  resolved_today: number;
+  median_resolution_hours: number | null;
+};
+
+export type DashboardVolume = {
+  daily: { date: string; count: number }[];
+  status_counts: { status: string; count: number }[];
+  priority_counts: { priority: string; count: number }[];
+};
+
+export type DashboardSlaTrend = {
+  trend: { date: string; resolved: number; met: number }[];
+  overall_compliance_percent: number | null;
+};
+
+export type TeamPerformanceRow = {
+  user_id: string;
+  name: string;
+  open_count: number;
+  resolved_count: number;
+  avg_resolution_hours: number | null;
+  avg_first_response_hours: number | null;
+};
