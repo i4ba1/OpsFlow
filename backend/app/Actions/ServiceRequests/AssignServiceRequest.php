@@ -7,6 +7,7 @@ use App\Events\RequestAssignedBroadcast;
 use App\Exceptions\RequestNotAssignableException;
 use App\Models\ServiceRequest;
 use App\Models\User;
+use App\Support\Audit\AuditRecorder;
 use App\Support\Notifications\NotificationDispatcher;
 use App\Support\Notifications\NotificationType;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +20,10 @@ use Illuminate\Support\Facades\DB;
  */
 final readonly class AssignServiceRequest
 {
+    public function __construct(
+        private AuditRecorder $audit,
+    ) {}
+
     /**
      * @throws RequestNotAssignableException
      */
@@ -34,9 +39,19 @@ final readonly class AssignServiceRequest
                 throw new RequestNotAssignableException;
             }
 
+            $previousAssignee = $locked->assigned_to;
+
             $locked->assigned_to = $assignee->id;
             $locked->version++;
             $locked->save();
+
+            $this->audit->record(
+                actor: $actor,
+                action: 'request.assigned',
+                entity: $locked,
+                oldValues: ['assigned_to' => $previousAssignee],
+                newValues: ['assigned_to' => $assignee->id],
+            );
 
             $locked->events()->create([
                 'organization_id' => $locked->organization_id,

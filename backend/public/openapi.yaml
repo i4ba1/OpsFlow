@@ -1,0 +1,173 @@
+openapi: 3.1.0
+info:
+  title: OpsFlow API
+  description: Multi-tenant B2B operations and client service platform.
+  version: 1.0.0
+servers:
+  - url: /api/v1
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: uuid
+  schemas:
+    ErrorEnvelope:
+      type: object
+      required: [error, meta]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string }
+            message: { type: string }
+            fields:
+              type: object
+              additionalProperties:
+                type: array
+                items: { type: string }
+        meta:
+          type: object
+          properties:
+            request_id: { type: string }
+    ServiceRequest:
+      type: object
+      properties:
+        id: { type: string }
+        request_number: { type: string }
+        title: { type: string }
+        description: { type: string }
+        status: { type: string, enum: [NEW, TRIAGED, IN_PROGRESS, WAITING_CUSTOMER, WAITING_INTERNAL, ESCALATED, RESOLVED, CLOSED, CANCELLED] }
+        priority: { type: string, enum: [CRITICAL, HIGH, MEDIUM, LOW] }
+        version: { type: integer }
+    PaginationMeta:
+      type: object
+      properties:
+        current_page: { type: integer }
+        per_page: { type: integer }
+        total: { type: integer }
+        last_page: { type: integer }
+        request_id: { type: string }
+security:
+  - bearerAuth: []
+paths:
+  /auth/login:
+    post:
+      summary: Authenticate with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        '200':
+          description: Login succeeded with a bearer token and user context
+        '422':
+          $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          $ref: '#/components/schemas/ErrorEnvelope'
+  /me:
+    get:
+      summary: Current user, organization, roles and permissions
+      responses:
+        '200':
+          description: User context
+        '401':
+          $ref: '#/components/schemas/ErrorEnvelope'
+  /service-requests:
+    get:
+      summary: Paginated org-scoped service requests with filters
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: per_page, in: query, schema: { type: integer } }
+        - { name: search, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string }, description: Repeatable }
+        - { name: sort, in: query, schema: { type: string }, example: '-created_at' }
+      responses:
+        '200':
+          description: Paginated list
+        '403':
+          $ref: '#/components/schemas/ErrorEnvelope'
+    post:
+      summary: Create a service request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [customer_id, title, description, priority]
+              properties:
+                customer_id: { type: string }
+                project_id: { type: string, nullable: true }
+                title: { type: string, minLength: 5, maxLength: 200 }
+                description: { type: string, minLength: 10 }
+                priority: { type: string, enum: [CRITICAL, HIGH, MEDIUM, LOW] }
+      responses:
+        '201': { description: Created }
+        '422': { $ref: '#/components/schemas/ErrorEnvelope' }
+  /service-requests/{serviceRequest}:
+    get:
+      summary: Request detail
+      parameters:
+        - { name: serviceRequest, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '404': { $ref: '#/components/schemas/ErrorEnvelope' }
+    patch:
+      summary: Update mutable fields (version-checked)
+      parameters:
+        - { name: serviceRequest, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                description: { type: string }
+                version: { type: integer }
+      responses:
+        '200': { description: OK }
+        '409': { $ref: '#/components/schemas/ErrorEnvelope' }
+  /service-requests/{serviceRequest}/transition:
+    post:
+      summary: Perform a state-machine transition
+      parameters:
+        - { name: serviceRequest, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [NEW, TRIAGED, IN_PROGRESS, WAITING_CUSTOMER, WAITING_INTERNAL, ESCALATED, RESOLVED, CLOSED, CANCELLED] }
+                note: { type: string, nullable: true }
+                version: { type: integer, nullable: true }
+      responses:
+        '200': { description: OK }
+        '422': { $ref: '#/components/schemas/ErrorEnvelope' }
+  /invoices:
+    get:
+      summary: Paginated org-scoped invoices
+      responses:
+        '200': { description: Paginated list }
+  /approvals:
+    get:
+      summary: Paginated org-scoped approvals
+      parameters:
+        - { name: assigned_to, in: query, schema: { type: string }, description: User id or the literal 'me' }
+      responses:
+        '200': { description: Paginated list }
+  /dashboard/overview:
+    get:
+      summary: Operations overview cards
+      responses:
+        '200': { description: Card metrics }

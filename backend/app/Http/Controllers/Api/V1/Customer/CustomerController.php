@@ -8,6 +8,7 @@ use App\Http\Requests\Customer\StoreCustomerRequest;
 use App\Http\Requests\Customer\UpdateCustomerRequest;
 use App\Http\Resources\Api\V1\CustomerResource;
 use App\Models\Customer;
+use App\Support\Audit\AuditRecorder;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
@@ -130,7 +131,20 @@ class CustomerController extends Controller implements HasMiddleware
     {
         $this->assertSameOrganization($customer, $request->user()->organization_id);
 
+        $old = $customer->only($request->validated() !== [] ? array_keys($request->validated()) : []);
+
         $customer->update($request->validated());
+
+        $new = $customer->only(array_keys($request->validated()));
+
+        app(AuditRecorder::class)->record(
+            actor: $request->user(),
+            action: 'customer.updated',
+            entity: $customer,
+            oldValues: $old,
+            newValues: $new,
+            request: $request,
+        );
 
         return response()->json([
             'data' => new CustomerResource($customer->fresh()->loadCount('contacts')),
@@ -149,6 +163,14 @@ class CustomerController extends Controller implements HasMiddleware
             'status' => CustomerStatus::Archived,
             'archived_at' => now(),
         ]);
+
+        app(AuditRecorder::class)->record(
+            actor: $request->user(),
+            action: 'customer.archived',
+            entity: $customer,
+            newValues: ['status' => CustomerStatus::Archived->value],
+            request: $request,
+        );
 
         return response()->json([
             'data' => new CustomerResource($customer->fresh()->loadCount('contacts')),

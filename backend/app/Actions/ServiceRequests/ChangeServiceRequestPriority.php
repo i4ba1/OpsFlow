@@ -8,6 +8,7 @@ use App\Enums\ServiceRequestPriority;
 use App\Exceptions\RequestNotEditableException;
 use App\Models\ServiceRequest;
 use App\Models\User;
+use App\Support\Audit\AuditRecorder;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -22,6 +23,7 @@ final readonly class ChangeServiceRequestPriority
 {
     public function __construct(
         private SlaPolicyService $slaPolicies,
+        private AuditRecorder $audit,
     ) {}
 
     /**
@@ -44,6 +46,14 @@ final readonly class ChangeServiceRequestPriority
             $locked->priority = $priority;
             $locked->version++;
             $locked->save();
+
+            $this->audit->record(
+                actor: $actor,
+                action: 'request.priority_changed',
+                entity: $locked,
+                oldValues: ['priority' => $from->value],
+                newValues: ['priority' => $priority->value, 'version' => $locked->version],
+            );
 
             // Recompute the SLA due dates from the new priority when the
             // request has an active policy with a matching target.

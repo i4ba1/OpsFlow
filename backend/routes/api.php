@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\Approval\ApprovalController;
 use App\Http\Controllers\Api\V1\Attachment\AttachmentController;
+use App\Http\Controllers\Api\V1\Audit\AuditLogController;
 use App\Http\Controllers\Api\V1\Auth\LoginController;
 use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\Auth\MeController;
@@ -25,7 +26,7 @@ use App\Http\Controllers\Api\V1\User\DisableUserController;
 use App\Http\Controllers\Api\V1\User\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/auth/login', LoginController::class);
+Route::post('/auth/login', LoginController::class)->middleware('throttle:login');
 Route::get('/ping', PingController::class);
 
 Route::middleware('auth:sanctum')->group(function (): void {
@@ -119,5 +120,8 @@ Route::middleware('auth:sanctum')->group(function (): void {
             Route::get('/sla', [DashboardController::class, 'sla']);
             Route::get('/team-performance', [DashboardController::class, 'teamPerformance']);
         });
+
+        Route::get('/audit-logs', [AuditLogController::class, 'index']);
+        Route::get('/audit-logs/{auditLog}', [AuditLogController::class, 'show']);
     });
 });

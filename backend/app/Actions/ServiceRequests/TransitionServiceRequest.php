@@ -11,6 +11,7 @@ use App\Exceptions\InvalidTransitionException;
 use App\Exceptions\ServiceRequestVersionConflictException;
 use App\Models\ServiceRequest;
 use App\Models\User;
+use App\Support\Audit\AuditRecorder;
 use App\Support\Notifications\NotificationDispatcher;
 use App\Support\Notifications\NotificationType;
 use Illuminate\Support\Carbon;
@@ -29,6 +30,7 @@ final readonly class TransitionServiceRequest
 {
     public function __construct(
         private ServiceRequestWorkflow $workflow,
+        private AuditRecorder $audit,
     ) {}
 
     /**
@@ -83,6 +85,14 @@ final readonly class TransitionServiceRequest
                 'to_value' => $target->value,
                 'note' => $note,
             ]);
+
+            $this->audit->record(
+                actor: $actor,
+                action: 'request.status_changed',
+                entity: $locked,
+                oldValues: ['status' => $from->value],
+                newValues: ['status' => $target->value, 'version' => $locked->version],
+            );
 
             $fresh = $locked->fresh();
 
