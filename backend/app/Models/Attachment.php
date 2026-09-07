@@ -29,6 +29,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property ServiceRequest|null $serviceRequest
  * @property Comment|null $comment
+ * @property Approval|null $approval
  * @property User $uploader
  *
  * @method static AttachmentFactory factory(...$parameters)
@@ -69,6 +70,12 @@ class Attachment extends Model
     public function comment(): BelongsTo
     {
         return $this->belongsTo(Comment::class);
+    }
+
+    /** @return BelongsTo<Approval, $this> */
+    public function approval(): BelongsTo
+    {
+        return $this->belongsTo(Approval::class, 'approval_id');
     }
 
     /** @return BelongsTo<User, $this> */

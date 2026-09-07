@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\CheckActiveServiceRequestSlas;
+use App\Jobs\ExpirePendingApprovals;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -19,3 +20,10 @@ Schedule::job(CheckActiveServiceRequestSlas::class)
     ->everyMinute()
     ->withoutOverlapping()
     ->description('Check active service request SLAs');
+
+// Approval expiry (PRD §33): approvals past their due date move PENDING ->
+// EXPIRED. The query only matches PENDING rows, so re-runs never double-expire.
+Schedule::job(ExpirePendingApprovals::class)
+    ->everyFiveMinutes()
+    ->withoutOverlapping()
+    ->description('Expire pending approvals past their due date');

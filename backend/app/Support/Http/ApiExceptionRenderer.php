@@ -2,6 +2,7 @@
 
 namespace App\Support\Http;
 
+use App\Exceptions\ApprovalAlreadyRespondedException;
 use App\Exceptions\InvalidTransitionException;
 use App\Exceptions\RequestNotAssignableException;
 use App\Exceptions\RequestNotEditableException;
@@ -79,6 +80,7 @@ final class ApiExceptionRenderer
         if ($exception instanceof HttpExceptionInterface) {
             return match (true) {
                 $exception instanceof RoleInUseException => 'ROLE_IN_USE',
+                $exception instanceof ApprovalAlreadyRespondedException => 'APPROVAL_ALREADY_RESPONDED',
                 $exception instanceof InvalidTransitionException => 'REQUEST_INVALID_TRANSITION',
                 $exception instanceof RequestNotAssignableException => 'REQUEST_NOT_ASSIGNABLE',
                 $exception instanceof RequestNotEditableException => 'REQUEST_NOT_EDITABLE',

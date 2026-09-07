@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Approval\ApprovalController;
 use App\Http\Controllers\Api\V1\Attachment\AttachmentController;
 use App\Http\Controllers\Api\V1\Auth\LoginController;
 use App\Http\Controllers\Api\V1\Auth\LogoutController;
@@ -73,6 +74,13 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::get('/service-requests/{serviceRequest}/comments', [CommentController::class, 'index']);
         Route::post('/service-requests/{serviceRequest}/comments', [CommentController::class, 'store']);
         Route::post('/service-requests/{serviceRequest}/attachments', [AttachmentController::class, 'store']);
+        Route::post('/service-requests/{serviceRequest}/approvals', [ApprovalController::class, 'store']);
+
+        Route::get('/approvals', [ApprovalController::class, 'index']);
+        Route::get('/approvals/{approval}', [ApprovalController::class, 'show']);
+        Route::post('/approvals/{approval}/approve', [ApprovalController::class, 'approve']);
+        Route::post('/approvals/{approval}/reject', [ApprovalController::class, 'reject']);
+        Route::post('/approvals/{approval}/cancel', [ApprovalController::class, 'cancel']);
 
         Route::get('/sla-policies', [SlaPolicyController::class, 'index']);
         Route::post('/sla-policies', [SlaPolicyController::class, 'store']);
