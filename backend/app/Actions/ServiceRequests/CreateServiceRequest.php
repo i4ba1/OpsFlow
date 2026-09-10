@@ -27,15 +27,19 @@ final readonly class CreateServiceRequest
     ) {}
 
     /**
-     * @param  array{title: string, description: string, customer_id: string, priority?: string, project_id?: string|null, category_id?: string|null, sla_policy_id?: string|null}  $data
+     * @param  array{title: string, description: string, customer_id?: string|null, priority?: string, project_id?: string|null, category_id?: string|null, sla_policy_id?: string|null}  $data
      */
     public function handle(User $actor, array $data): ServiceRequest
     {
         return DB::transaction(function () use ($actor, $data): ServiceRequest {
+            // Customer-portal users do not choose a customer: the request is
+            // tied to the customer they are a contact of.
+            $customerId = $data['customer_id'] ?? $actor->customerContacts()->value('customer_id');
+
             $serviceRequest = ServiceRequest::query()->create([
                 'organization_id' => $actor->organization_id,
                 'request_number' => $this->numbers->next($actor->organization_id),
-                'customer_id' => $data['customer_id'],
+                'customer_id' => $customerId,
                 'project_id' => $data['project_id'] ?? null,
                 'requested_by' => $actor->id,
                 'title' => $data['title'],

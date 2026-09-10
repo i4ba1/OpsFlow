@@ -9,8 +9,12 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 
 /**
  * Organization-wide channel (PRD §34): any member of the organization.
+ *
+ * Patterns are declared WITHOUT the "private-" prefix: Laravel strips that
+ * prefix from the incoming channel_name before matching, so the pattern must
+ * be the bare name. Clients subscribe via Echo.private('organization.{id}').
  */
-Broadcast::channel('private-organization.{organizationId}', function ($user, $organizationId) {
+Broadcast::channel('organization.{organizationId}', function ($user, $organizationId) {
     return $user->organization_id === $organizationId;
 });
 
@@ -19,7 +23,7 @@ Broadcast::channel('private-organization.{organizationId}', function ($user, $or
  * anyone holding request.view for it (participants such as the assignee and
  * requester always belong to the request organization).
  */
-Broadcast::channel('private-request.{serviceRequestId}', function ($user, $serviceRequestId) {
+Broadcast::channel('request.{serviceRequestId}', function ($user, $serviceRequestId) {
     $serviceRequest = ServiceRequest::query()->find($serviceRequestId);
 
     if ($serviceRequest === null) {
@@ -36,6 +40,6 @@ Broadcast::channel('private-request.{serviceRequestId}', function ($user, $servi
 /**
  * Private user channel (PRD §34): the user themselves only.
  */
-Broadcast::channel('private-user.{userId}', function ($user, $userId) {
+Broadcast::channel('user.{userId}', function ($user, $userId) {
     return $user->id === $userId;
 });

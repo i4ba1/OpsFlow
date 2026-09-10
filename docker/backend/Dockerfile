@@ -13,7 +13,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         intl \
         pcntl \
         bcmath \
-        opcache \
     && pecl install redis \
     && docker-php-ext-enable redis \
     && apt-get clean \
@@ -24,6 +23,16 @@ COPY docker/backend/php.ini /usr/local/etc/php/conf.d/99-opsflow.ini
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
+
+# Seed the Laravel writable directories with www-data ownership so the named
+# storage volume is initialised writable (php-fpm workers run as www-data).
+RUN mkdir -p \
+        storage/framework/cache \
+        storage/framework/sessions \
+        storage/framework/views \
+        storage/logs \
+        bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache
 
 EXPOSE 9000
 

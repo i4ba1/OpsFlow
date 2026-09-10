@@ -46,6 +46,8 @@ final class LoginController extends Controller
 
         $token = $user->createToken('spa')->plainTextToken;
 
+        $user->load(['organization', 'roles.permissions']);
+
         return response()->json([
             'data' => [
                 'token' => $token,

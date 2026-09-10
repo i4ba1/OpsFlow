@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api\V1;
 
+use App\Domain\ServiceRequests\ServiceRequestWorkflow;
 use App\Enums\ServiceRequestPriority;
 use App\Enums\ServiceRequestStatus;
 use App\Models\Customer;
@@ -64,6 +65,46 @@ class ServiceRequestResource extends JsonResource
             'version' => $this->version,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'available_transitions' => $this->availableTransitions($request),
         ];
+    }
+
+    /**
+     * The state-machine edges the requesting user may currently walk, each with
+     * the permission that authorizes it (PRD §12.2). Lets the SPA render only
+     * legal transitions without duplicating the matrix.
+     *
+     * @return list<array{status: string, permission: string}>
+     */
+    private function availableTransitions(Request $request): array
+    {
+        $user = $request->user();
+
+        if ($user === null) {
+            return [];
+        }
+
+        $status = $this->resource->status;
+
+        if (! $status instanceof ServiceRequestStatus) {
+            return [];
+        }
+
+        $workflow = app(ServiceRequestWorkflow::class);
+
+        $transitions = [];
+
+        foreach ($workflow->allowedTargets($status) as $target) {
+            $permission = $workflow->permissionFor($status, $target);
+
+            if ($user->hasPermission($permission)) {
+                $transitions[] = [
+                    'status' => $target->value,
+                    'permission' => $permission,
+                ];
+            }
+        }
+
+        return $transitions;
     }
 }

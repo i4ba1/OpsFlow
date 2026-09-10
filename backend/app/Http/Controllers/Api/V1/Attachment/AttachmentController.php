@@ -21,7 +21,7 @@ class AttachmentController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:request.view', only: ['store']),
+            new Middleware('permission:request.view', only: ['index', 'store']),
             new Middleware('permission:attachment.create', only: ['store']),
             new Middleware('permission:attachment.download', only: ['download']),
             new Middleware('permission:attachment.delete', only: ['destroy']),
@@ -33,6 +33,22 @@ class AttachmentController extends Controller implements HasMiddleware
         private readonly DownloadAttachment $downloadAttachment,
         private readonly DeleteAttachment $deleteAttachment,
     ) {}
+
+    /**
+     * GET /api/v1/service-requests/{serviceRequest}/attachments — list the
+     * non-deleted attachments uploaded against a request, newest first.
+     */
+    public function index(Request $request, ServiceRequest $serviceRequest): JsonResponse
+    {
+        $this->assertRequestOrganization($serviceRequest, $request->user()->organization_id);
+
+        return response()->json([
+            'data' => AttachmentResource::collection($serviceRequest->attachments()->get()),
+            'meta' => [
+                'request_id' => $request->attributes->get('request_id'),
+            ],
+        ]);
+    }
 
     /**
      * POST /api/v1/service-requests/{serviceRequest}/attachments — store a

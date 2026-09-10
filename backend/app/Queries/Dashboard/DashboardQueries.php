@@ -310,17 +310,17 @@ final class DashboardQueries
     }
 
     /**
-     * Resolution durations in fractional hours of every resolved request that
-     * carries a resolution due date. Clamped to whole seconds so each member
-     * of the row expression is an int; rows may still arrive as strings from
-     * the driver.
+     * Resolution durations in whole seconds of every resolved request that
+     * carries a resolution due date, ascending. Computed in PHP so the query
+     * stays portable across SQLite and PostgreSQL (no database-specific date
+     * arithmetic).
      *
      * @return list<int>
      */
     private static function resolutionDurations(string $organizationId): array
     {
         return ServiceRequest::query()
-            ->selectRaw('CAST(CAST((julianday(resolved_at) - julianday(created_at)) * 86400 AS INTEGER) AS INTEGER) as seconds')
+            ->select('created_at', 'resolved_at')
             ->where('organization_id', $organizationId)
             ->whereIn('status', [
                 ServiceRequestStatus::Resolved->value,
@@ -328,9 +328,15 @@ final class DashboardQueries
             ])
             ->whereNotNull('resolved_at')
             ->whereNotNull('resolution_due_at')
-            ->orderBy('seconds')
-            ->pluck('seconds')
-            ->map(static fn ($seconds): int => (int) $seconds)
+            ->get()
+            ->map(static function (ServiceRequest $request): int {
+                $created = Carbon::parse($request->created_at);
+                $resolved = Carbon::parse($request->resolved_at);
+
+                return (int) abs($created->diffInSeconds($resolved));
+            })
+            ->sort()
+            ->values()
             ->all();
     }
 

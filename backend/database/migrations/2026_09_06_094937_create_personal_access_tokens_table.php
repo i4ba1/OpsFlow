@@ -13,7 +13,9 @@ return new class extends Migration
     {
         Schema::create('personal_access_tokens', function (Blueprint $table) {
             $table->id();
-            $table->morphs('tokenable');
+            // Users are keyed by UUID, so the tokenable morph must be a uuid
+            // (a bigint column fails on PostgreSQL).
+            $table->uuidMorphs('tokenable');
             $table->text('name');
             $table->string('token', 64)->unique();
             $table->text('abilities')->nullable();

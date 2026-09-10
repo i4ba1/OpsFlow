@@ -44,3 +44,23 @@ export async function fetchCustomerContacts(customerId: string): Promise<Custome
   const response = await api.get<{ data: CustomerContact[] }>(`/customers/${customerId}/contacts`);
   return response.data.data;
 }
+
+export type CustomerContactPayload = {
+  name: string;
+  email: string;
+  phone?: string | null;
+  job_title?: string | null;
+  is_primary?: boolean;
+  user_id?: string | null;
+};
+
+export async function createCustomerContact(
+  customerId: string,
+  payload: CustomerContactPayload,
+): Promise<CustomerContact> {
+  const response = await api.post<{ data: CustomerContact }>(
+    `/customers/${customerId}/contacts`,
+    payload,
+  );
+  return response.data.data;
+}

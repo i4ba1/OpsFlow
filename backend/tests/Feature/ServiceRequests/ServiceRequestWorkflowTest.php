@@ -472,3 +472,35 @@ it('refuses a history request for a foreign request', function () {
         ->assertNotFound()
         ->assertJsonPath('error.code', 'RESOURCE_NOT_FOUND');
 });
+
+it('exposes the transitions the current user may currently perform', function () {
+    $org = Organization::factory()->create();
+    $admin = makeWorkflowOperator($org);
+    $customer = Customer::factory()->create(['organization_id' => $org->id]);
+    $request = workflowRequest($org, $admin, $customer);
+
+    $token = $admin->createToken('spa')->plainTextToken;
+
+    $this->withToken($token)
+        ->getJson("/api/v1/service-requests/{$request->id}")
+        ->assertOk()
+        ->assertJsonPath('data.status', 'NEW')
+        ->assertJsonFragment(['status' => 'TRIAGED', 'permission' => 'request.transition'])
+        ->assertJsonFragment(['status' => 'CANCELLED', 'permission' => 'request.close']);
+});
+
+it('hides transitions the user lacks permission to perform', function () {
+    $org = Organization::factory()->create();
+    $viewer = User::factory()->create(['organization_id' => $org->id]);
+    grantServiceRequestWorkflowPermission($viewer, 'request.view');
+
+    $customer = Customer::factory()->create(['organization_id' => $org->id]);
+    $request = workflowRequest($org, $viewer, $customer);
+
+    $token = $viewer->createToken('spa')->plainTextToken;
+
+    $this->withToken($token)
+        ->getJson("/api/v1/service-requests/{$request->id}")
+        ->assertOk()
+        ->assertJsonPath('data.available_transitions', []);
+});

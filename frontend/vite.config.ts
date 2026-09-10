@@ -27,5 +27,7 @@ export default defineConfig({
     globals: true,
     setupFiles: './src/tests/setup.ts',
     css: false,
+    // Keep Vitest to the app source; e2e/*.spec.ts belongs to Playwright.
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
   },
 });

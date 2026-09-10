@@ -20,6 +20,7 @@ use App\Models\Role;
 use App\Models\ServiceRequest;
 use App\Models\SlaPolicy;
 use App\Models\User;
+use App\Support\RequestNumberGenerator;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -207,6 +208,7 @@ class DemoSeeder extends Seeder
         $policy = SlaPolicy::query()->where('organization_id', $org->id)->firstOrFail();
         $calculator = app(SlaCalculator::class);
         $calendar = SlaBusinessCalendar::fromModel($policy->businessCalendar);
+        $numbers = app(RequestNumberGenerator::class);
         $customers = Customer::query()->where('organization_id', $org->id)->get();
         $projects = Project::query()->where('organization_id', $org->id)->get();
 
@@ -248,7 +250,7 @@ class DemoSeeder extends Seeder
 
             $request = ServiceRequest::query()->create([
                 'organization_id' => $org->id,
-                'request_number' => sprintf('REQ-%s-%06d', $created->year, $i + 1),
+                'request_number' => $numbers->next($org->id),
                 'customer_id' => $customer->id,
                 'project_id' => $projects->random()->id,
                 'requested_by' => $requester->id,

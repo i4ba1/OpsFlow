@@ -4,16 +4,19 @@ import { AuthProvider } from '../../auth/auth-context';
 import { AppShell } from '../../components/layout/AppShell';
 import { ApprovalDetailPage } from '../../features/approvals/ApprovalDetailPage';
 import { ApprovalsPage } from '../../features/approvals/ApprovalsPage';
+import { CustomerDetailPage } from '../../features/customers/CustomerDetailPage';
 import { CustomersPage } from '../../features/customers/CustomersPage';
 import { DashboardPage } from '../../features/dashboard/DashboardPage';
-import { HomePage } from '../../features/dashboard/HomePage';
 import { InvoiceDetailPage } from '../../features/invoices/InvoiceDetailPage';
 import { InvoicesPage } from '../../features/invoices/InvoicesPage';
 import { LoginPage } from '../../features/auth/LoginPage';
+import { NotificationsPage } from '../../features/notifications/NotificationsPage';
+import { ProjectDetailPage } from '../../features/projects/ProjectDetailPage';
 import { ProjectsPage } from '../../features/projects/ProjectsPage';
 import { RequestDetailPage } from '../../features/requests/RequestDetailPage';
 import { RequestsPage } from '../../features/requests/RequestsPage';
-import { RequireAuth } from '../../permissions/guards';
+import { RequireAuth, RequirePermission } from '../../permissions/guards';
+import { RealtimeProvider } from '../../realtime/RealtimeProvider';
 import { SlaPoliciesPage } from '../../features/sla/SlaPoliciesPage';
 
 export const router = createHashRouter([
@@ -29,17 +32,46 @@ export const router = createHashRouter([
         element: <AppShell />,
         children: [
           { index: true, element: <DashboardPage /> },
-          { path: 'customers', element: <CustomersPage /> },
-          { path: 'customers/:customerId', element: <HomePage /> },
-          { path: 'projects', element: <ProjectsPage /> },
-          { path: 'projects/:projectId', element: <HomePage /> },
-          { path: 'requests', element: <RequestsPage /> },
-          { path: 'requests/:requestId', element: <RequestDetailPage /> },
-          { path: 'approvals', element: <ApprovalsPage /> },
-          { path: 'approvals/:approvalId', element: <ApprovalDetailPage /> },
-          { path: 'invoices', element: <InvoicesPage /> },
-          { path: 'invoices/:invoiceId', element: <InvoiceDetailPage /> },
-          { path: 'settings/sla', element: <SlaPoliciesPage /> },
+          {
+            element: <RequirePermission permission="customer.view" />,
+            children: [
+              { path: 'customers', element: <CustomersPage /> },
+              { path: 'customers/:customerId', element: <CustomerDetailPage /> },
+            ],
+          },
+          {
+            element: <RequirePermission permission="project.view" />,
+            children: [
+              { path: 'projects', element: <ProjectsPage /> },
+              { path: 'projects/:projectId', element: <ProjectDetailPage /> },
+            ],
+          },
+          {
+            element: <RequirePermission permission="request.view" />,
+            children: [
+              { path: 'requests', element: <RequestsPage /> },
+              { path: 'requests/:requestId', element: <RequestDetailPage /> },
+            ],
+          },
+          {
+            element: <RequirePermission permission="approval.view" />,
+            children: [
+              { path: 'approvals', element: <ApprovalsPage /> },
+              { path: 'approvals/:approvalId', element: <ApprovalDetailPage /> },
+            ],
+          },
+          {
+            element: <RequirePermission permission="invoice.view" />,
+            children: [
+              { path: 'invoices', element: <InvoicesPage /> },
+              { path: 'invoices/:invoiceId', element: <InvoiceDetailPage /> },
+            ],
+          },
+          { path: 'notifications', element: <NotificationsPage /> },
+          {
+            element: <RequirePermission permission="sla.view" />,
+            children: [{ path: 'settings/sla', element: <SlaPoliciesPage /> }],
+          },
         ],
       },
     ],
@@ -50,7 +82,9 @@ export const router = createHashRouter([
 export function AppRouter() {
   return (
     <AuthProvider>
-      <RouterProvider router={router} />
+      <RealtimeProvider>
+        <RouterProvider router={router} />
+      </RealtimeProvider>
     </AuthProvider>
   );
 }

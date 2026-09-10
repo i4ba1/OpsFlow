@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import {
   Alert,
+  Button,
   Chip,
   LinearProgress,
   Paper,
@@ -24,7 +25,9 @@ import { z } from 'zod';
 
 import type { ServiceRequest, ServiceRequestPriority } from '../../types/features';
 import { requestKeys } from '../../api/query-keys';
+import { usePermission } from '../../permissions/Can';
 import { slaSummary } from '../sla/sla-utils';
+import { CreateRequestDialog } from './CreateRequestDialog';
 import { fetchRequests } from './request-api';
 
 const searchSchema = z.object({ search: z.string() });
@@ -39,9 +42,11 @@ const PRIORITY_COLORS: Record<ServiceRequestPriority, 'error' | 'warning' | 'inf
 
 export function RequestsPage() {
   const navigate = useNavigate();
+  const { hasPermission } = usePermission();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(15);
   const [search, setSearch] = useState('');
+  const [createOpen, setCreateOpen] = useState(false);
 
   const { data, isPending, error } = useQuery({
     queryKey: requestKeys.list({
@@ -70,9 +75,20 @@ export function RequestsPage() {
 
   return (
     <Stack spacing={2}>
-      <Typography variant="h4" component="h1">
-        Service Requests
-      </Typography>
+      <Stack
+        direction="row"
+        spacing={2}
+        sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+      >
+        <Typography variant="h4" component="h1">
+          Service Requests
+        </Typography>
+        {hasPermission('request.create') && (
+          <Button variant="contained" onClick={() => setCreateOpen(true)}>
+            New request
+          </Button>
+        )}
+      </Stack>
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <TextField label="Search requests" size="small" {...register('search')} />
@@ -157,6 +173,8 @@ export function RequestsPage() {
           />
         )}
       </TableContainer>
+
+      <CreateRequestDialog open={createOpen} onClose={() => setCreateOpen(false)} />
     </Stack>
   );
 }

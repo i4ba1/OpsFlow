@@ -80,9 +80,6 @@ jobs:
   frontend:
     name: Frontend (ESLint, TS, Vitest, Build)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
     steps:
       - uses: actions/checkout@v5
 
@@ -91,13 +88,13 @@ jobs:
         with:
           node-version: '24'
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: package-lock.json
 
-      - name: Install dependencies
+      - name: Install dependencies (root npm workspace)
         run: npm ci
 
       - name: ESLint
-        run: npm run lint
+        run: npm run lint:frontend
 
       - name: TypeScript check
         run: npm run typecheck
@@ -106,7 +103,7 @@ jobs:
         run: npm run format:check
 
       - name: Vitest
-        run: npm run test
+        run: npm run test:frontend
 
       - name: Production build
         run: npm run build

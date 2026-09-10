@@ -13,6 +13,7 @@ import {
 import { NavLink, Outlet } from 'react-router-dom';
 
 import { useAuth } from '../../auth/auth-context';
+import { NotificationsBell } from '../../features/notifications/NotificationsBell';
 
 const NAV_ITEMS = [
   { label: 'Dashboard', to: '/app' },
@@ -24,7 +25,10 @@ const NAV_ITEMS = [
 ];
 
 export function AppShell() {
-  const { user, logout } = useAuth();
+  const { user, logout, hasPermission } = useAuth();
+  const navItems = NAV_ITEMS.filter(
+    (item) => item.permission === undefined || hasPermission(item.permission),
+  );
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
@@ -36,6 +40,7 @@ export function AppShell() {
           <Typography variant="body2" sx={{ mr: 2 }}>
             {user?.organization?.name ?? ''}
           </Typography>
+          <NotificationsBell />
           <Button color="inherit" onClick={() => void logout()}>
             Sign out
           </Button>
@@ -52,7 +57,7 @@ export function AppShell() {
       >
         <Toolbar />
         <List>
-          {NAV_ITEMS.map((item) => (
+          {navItems.map((item) => (
             <ListItem key={item.to} disablePadding>
               <ListItemButton
                 component={NavLink}

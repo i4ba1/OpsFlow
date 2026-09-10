@@ -43,6 +43,7 @@ use Illuminate\Support\Carbon;
  * @property ServiceRequestCategory|null $category
  * @property SlaPolicy|null $policy
  * @property Collection<int, ServiceRequestEvent> $events
+ * @property Collection<int, Attachment> $attachments
  * @property string|null $policy_id SLA monitor join projection (sla_policies.id)
  * @property string|null $timezone SLA monitor join projection (policy timezone)
  * @property string|null $business_calendar_id SLA monitor join projection
@@ -130,6 +131,12 @@ class ServiceRequest extends Model
     public function events(): HasMany
     {
         return $this->hasMany(ServiceRequestEvent::class)->orderBy('created_at')->orderBy('id');
+    }
+
+    /** @return HasMany<Attachment, $this> */
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(Attachment::class)->latest();
     }
 
     protected function casts(): array

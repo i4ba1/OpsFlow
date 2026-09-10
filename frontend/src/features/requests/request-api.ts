@@ -19,7 +19,7 @@ export async function fetchRequest(id: string): Promise<ServiceRequest> {
 }
 
 export type CreateRequestPayload = {
-  customer_id: string;
+  customer_id?: string | null;
   project_id?: string | null;
   title: string;
   description: string;

@@ -39,6 +39,23 @@ export async function uploadAttachment(serviceRequestId: string, file: File): Pr
   return response.data.data;
 }
 
-export function attachmentDownloadUrl(id: string): string {
-  return `${import.meta.env.VITE_API_BASE_URL ?? '/api/v1'}/attachments/${id}/download`;
+export async function deleteAttachment(id: string): Promise<void> {
+  await api.delete(`/attachments/${id}`);
+}
+
+/**
+ * Download through the authenticated axios client (the endpoint requires a
+ * bearer token, so a bare <a href> would 401), then save the blob locally.
+ */
+export async function downloadAttachment(id: string, originalName: string): Promise<void> {
+  const response = await api.get<Blob>(`/attachments/${id}/download`, { responseType: 'blob' });
+
+  const url = URL.createObjectURL(response.data);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = originalName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }

@@ -4,6 +4,7 @@ use App\Enums\ServiceRequestEventType;
 use App\Enums\ServiceRequestPriority;
 use App\Enums\ServiceRequestStatus;
 use App\Models\Customer;
+use App\Models\CustomerContact;
 use App\Models\Organization;
 use App\Models\Permission;
 use App\Models\Role;
@@ -88,6 +89,46 @@ it('auto-assigns priority MEDIUM and status NEW when omitted', function () {
 
     expect(ServiceRequest::query()->where('organization_id', $org->id)->value('priority'))
         ->toBe(ServiceRequestPriority::Medium);
+});
+
+it('infers the customer from a customer contact when none is supplied', function () {
+    $org = Organization::factory()->create();
+    $user = User::factory()->create(['organization_id' => $org->id]);
+    grantServiceRequestCrudPermission($user, 'request.create');
+
+    $customer = Customer::factory()->create(['organization_id' => $org->id]);
+    CustomerContact::factory()->create([
+        'organization_id' => $org->id,
+        'customer_id' => $customer->id,
+        'user_id' => $user->id,
+    ]);
+
+    $token = $user->createToken('spa')->plainTextToken;
+
+    $this->withToken($token)
+        ->postJson('/api/v1/service-requests', [
+            'title' => 'Portal user raises a request',
+            'description' => 'No customer id is sent by the customer portal.',
+        ])
+        ->assertCreated()
+        ->assertJsonPath('data.customer.id', $customer->id);
+});
+
+it('requires a customer when the user has no customer contact', function () {
+    $org = Organization::factory()->create();
+    $user = User::factory()->create(['organization_id' => $org->id]);
+    grantServiceRequestCrudPermission($user, 'request.create');
+
+    $token = $user->createToken('spa')->plainTextToken;
+
+    $this->withToken($token)
+        ->postJson('/api/v1/service-requests', [
+            'title' => 'Missing customer',
+            'description' => 'This user is not a customer contact.',
+        ])
+        ->assertUnprocessable()
+        ->assertJsonPath('error.code', 'VALIDATION_ERROR')
+        ->assertJsonStructure(['error' => ['fields' => ['customer_id']]]);
 });
 
 it('lists service requests of the organization with pagination meta', function () {

@@ -1,0 +1,36 @@
+{
+  "name": "opsflow",
+  "version": "1.0.0",
+  "private": true,
+  "description": "OpsFlow — multi-tenant operations platform (Laravel 13 API + React 19 SPA).",
+  "license": "MIT",
+  "author": "i4ba1 <muhamadiqbal1987@gmail.com>",
+  "type": "module",
+  "workspaces": [
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "composer --working-dir=backend run dev",
+    "dev:frontend": "npm run dev --workspace frontend",
+    "build": "npm run build:frontend",
+    "build:backend": "composer --working-dir=backend install --no-dev --optimize-autoloader",
+    "build:frontend": "npm run build --workspace frontend",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "composer --working-dir=backend run test",
+    "test:frontend": "npm run test --workspace frontend",
+    "e2e": "npm run e2e --workspace frontend",
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "lint:backend": "composer --working-dir=backend run lint",
+    "lint:frontend": "npm run lint --workspace frontend",
+    "typecheck": "npm run typecheck --workspace frontend",
+    "analyse": "composer --working-dir=backend run analyse && npm run typecheck",
+    "format": "npm run format --workspace frontend",
+    "format:check": "npm run format:check --workspace frontend",
+    "setup": "npm install && composer --working-dir=backend install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0",
+    "prettier": "^3.9.6"
+  }
+}

@@ -2,6 +2,9 @@
   "name": "opsflow-frontend",
   "private": true,
   "version": "0.0.0",
+  "description": "OpsFlow web client — React 19 + TypeScript single-page application.",
+  "license": "MIT",
+  "author": "i4ba1 <muhamadiqbal1987@gmail.com>",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,6 +12,8 @@
     "preview": "vite preview",
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
+    "e2e": "playwright test",
+    "e2e:headed": "playwright test --headed",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint ."
@@ -22,6 +27,8 @@
     "@tanstack/react-table": "^9.2.4",
     "axios": "^1.20.0",
     "date-fns": "^4.4.0",
+    "laravel-echo": "^2.5.0",
+    "pusher-js": "^8.6.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-hook-form": "^7.87.0",

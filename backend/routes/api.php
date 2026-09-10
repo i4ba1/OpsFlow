@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\V1\SLA\BusinessCalendarController;
 use App\Http\Controllers\Api\V1\SLA\SlaPolicyController;
 use App\Http\Controllers\Api\V1\User\ActivateUserController;
 use App\Http\Controllers\Api\V1\User\AssignUserRolesController;
+use App\Http\Controllers\Api\V1\User\DirectoryController;
 use App\Http\Controllers\Api\V1\User\DisableUserController;
 use App\Http\Controllers\Api\V1\User\UserController;
 use Illuminate\Support\Facades\Route;
@@ -35,6 +36,8 @@ Route::middleware('auth:sanctum')->group(function (): void {
 
     Route::get('/organization', [OrganizationController::class, 'show']);
     Route::patch('/organization', [OrganizationController::class, 'update']);
+
+    Route::get('/directory/users', DirectoryController::class);
 
     Route::scopeBindings()->group(function (): void {
         Route::get('/users', [UserController::class, 'index']);
@@ -84,6 +87,7 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::get('/service-requests/{serviceRequest}/history', [ServiceRequestController::class, 'history']);
         Route::get('/service-requests/{serviceRequest}/comments', [CommentController::class, 'index']);
         Route::post('/service-requests/{serviceRequest}/comments', [CommentController::class, 'store']);
+        Route::get('/service-requests/{serviceRequest}/attachments', [AttachmentController::class, 'index']);
         Route::post('/service-requests/{serviceRequest}/attachments', [AttachmentController::class, 'store']);
         Route::post('/service-requests/{serviceRequest}/approvals', [ApprovalController::class, 'store']);
 

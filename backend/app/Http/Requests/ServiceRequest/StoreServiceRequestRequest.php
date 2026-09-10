@@ -5,6 +5,7 @@ namespace App\Http\Requests\ServiceRequest;
 use App\Enums\ServiceRequestPriority;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreServiceRequestRequest extends FormRequest
 {
@@ -16,8 +17,11 @@ class StoreServiceRequestRequest extends FormRequest
         $organizationId = $this->user()->organization_id;
 
         return [
+            // A customer user (linked to a CustomerContact) may omit the
+            // customer and have it inferred from their contact; everyone else
+            // must choose one. Enforced in withValidator().
             'customer_id' => [
-                'required',
+                'nullable',
                 'uuid',
                 Rule::exists('customers', 'id')
                     ->where('organization_id', $organizationId),
@@ -57,5 +61,23 @@ class StoreServiceRequestRequest extends FormRequest
             'category_id.exists' => 'The selected category is invalid.',
             'sla_policy_id.exists' => 'The selected SLA policy is invalid.',
         ];
+    }
+
+    /**
+     * Require an explicit customer unless the authenticated user is a customer
+     * contact (a customer-portal user), in which case the request is tied to
+     * the customer they belong to.
+     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            if ($validator->errors()->isNotEmpty() || $this->filled('customer_id')) {
+                return;
+            }
+
+            if (! $this->user()->customerContacts()->exists()) {
+                $validator->errors()->add('customer_id', 'The customer field is required.');
+            }
+        });
     }
 }

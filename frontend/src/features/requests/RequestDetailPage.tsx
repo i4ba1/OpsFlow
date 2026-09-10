@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   Alert,
   Box,
+  Button,
   Card,
   CardContent,
   Chip,
@@ -13,27 +14,25 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-import type { ServiceRequestStatus } from '../../types/features';
 import { requestKeys } from '../../api/query-keys';
+import { usePermission } from '../../permissions/Can';
+import { useRequestChannel } from '../../realtime/useRequestChannel';
+import { AttachmentsSection } from './AttachmentsSection';
 import { CommentsSection } from './CommentsSection';
+import { RequestActionsPanel } from './RequestActionsPanel';
+import { RequestApprovalDialog } from './RequestApprovalDialog';
+import { STATUS_LABEL } from './request-utils';
 import { fetchRequest, fetchRequestHistory } from './request-api';
-
-const STATUS_LABEL: Record<ServiceRequestStatus, string> = {
-  NEW: 'New',
-  TRIAGED: 'Triaged',
-  IN_PROGRESS: 'In progress',
-  WAITING_CUSTOMER: 'Waiting on customer',
-  WAITING_INTERNAL: 'Waiting on internal',
-  ESCALATED: 'Escalated',
-  RESOLVED: 'Resolved',
-  CLOSED: 'Closed',
-  CANCELLED: 'Cancelled',
-};
 
 export function RequestDetailPage() {
   const { requestId = '' } = useParams();
+  const { hasPermission } = usePermission();
+  const [approvalOpen, setApprovalOpen] = useState(false);
+
+  useRequestChannel(requestId || undefined);
 
   const requestQuery = useQuery({
     queryKey: requestKeys.detail(requestId),
@@ -66,6 +65,11 @@ export function RequestDetailPage() {
           </Typography>
           <Chip label={request.priority} size="small" color="warning" />
           <Chip label={STATUS_LABEL[request.status]} size="small" />
+          {hasPermission('approval.request') && (
+            <Button size="small" variant="outlined" onClick={() => setApprovalOpen(true)}>
+              Request approval
+            </Button>
+          )}
         </Stack>
         <Typography variant="h6" color="text.secondary">
           {request.title}
@@ -81,45 +85,51 @@ export function RequestDetailPage() {
           </CardContent>
         </Card>
 
-        <Box sx={{ width: 280 }}>
-          <Card variant="outlined">
-            <CardContent>
-              <Typography variant="subtitle2" gutterBottom>
-                Details
-              </Typography>
-              <Divider sx={{ mb: 1 }} />
-              <List dense disablePadding>
-                <ListItem disableGutters>
-                  <ListItemText primary="Customer" secondary={request.customer?.name ?? '—'} />
-                </ListItem>
-                <ListItem disableGutters>
-                  <ListItemText primary="Project" secondary={request.project?.name ?? '—'} />
-                </ListItem>
-                <ListItem disableGutters>
-                  <ListItemText
-                    primary="Assignee"
-                    secondary={request.assignee?.name ?? 'Unassigned'}
-                  />
-                </ListItem>
-                <ListItem disableGutters>
-                  <ListItemText
-                    primary="Requested by"
-                    secondary={request.requested_by?.name ?? '—'}
-                  />
-                </ListItem>
-                <ListItem disableGutters>
-                  <ListItemText
-                    primary="Created"
-                    secondary={new Date(request.created_at).toLocaleString()}
-                  />
-                </ListItem>
-              </List>
-            </CardContent>
-          </Card>
+        <Box sx={{ width: 320 }}>
+          <Stack spacing={2}>
+            <RequestActionsPanel request={request} />
+
+            <Card variant="outlined">
+              <CardContent>
+                <Typography variant="subtitle2" gutterBottom>
+                  Details
+                </Typography>
+                <Divider sx={{ mb: 1 }} />
+                <List dense disablePadding>
+                  <ListItem disableGutters>
+                    <ListItemText primary="Customer" secondary={request.customer?.name ?? '—'} />
+                  </ListItem>
+                  <ListItem disableGutters>
+                    <ListItemText primary="Project" secondary={request.project?.name ?? '—'} />
+                  </ListItem>
+                  <ListItem disableGutters>
+                    <ListItemText
+                      primary="Assignee"
+                      secondary={request.assignee?.name ?? 'Unassigned'}
+                    />
+                  </ListItem>
+                  <ListItem disableGutters>
+                    <ListItemText
+                      primary="Requested by"
+                      secondary={request.requested_by?.name ?? '—'}
+                    />
+                  </ListItem>
+                  <ListItem disableGutters>
+                    <ListItemText
+                      primary="Created"
+                      secondary={new Date(request.created_at).toLocaleString()}
+                    />
+                  </ListItem>
+                </List>
+              </CardContent>
+            </Card>
+          </Stack>
         </Box>
       </Stack>
 
       <CommentsSection serviceRequestId={request.id} />
+
+      <AttachmentsSection serviceRequestId={request.id} />
 
       <Card variant="outlined">
         <CardContent>
@@ -135,10 +145,10 @@ export function RequestDetailPage() {
                   <ListItemText
                     primary={
                       event.type === 'STATUS_CHANGED'
-                        ? `${event.from_value ?? '—'} → ${event.to_value ?? '—'}`
+                        ? `${event.data.from ?? '—'} → ${event.data.to ?? '—'}`
                         : event.type
                     }
-                    secondary={`${event.actor?.name ?? 'System'} · ${new Date(event.created_at).toLocaleString()}`}
+                    secondary={`${event.actor?.name ?? 'System'} · ${new Date(event.occurred_at).toLocaleString()}`}
                   />
                 </ListItem>
               ))}
@@ -149,6 +159,12 @@ export function RequestDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      <RequestApprovalDialog
+        serviceRequestId={request.id}
+        open={approvalOpen}
+        onClose={() => setApprovalOpen(false)}
+      />
     </Stack>
   );
 }

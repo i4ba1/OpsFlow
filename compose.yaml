@@ -19,9 +19,6 @@ services:
       context: .
       dockerfile: docker/backend/Dockerfile
     container_name: opsflow-backend
-    env_file:
-      - path: ./backend/.env
-        required: false
     volumes:
       - ./backend:/var/www/html
       - backend_vendor:/var/www/html/vendor
@@ -51,9 +48,6 @@ services:
       context: .
       dockerfile: docker/backend/Dockerfile
     container_name: opsflow-queue
-    env_file:
-      - path: ./backend/.env
-        required: false
     command: ["php", "artisan", "horizon"]
     volumes:
       - ./backend:/var/www/html
@@ -71,9 +65,6 @@ services:
       context: .
       dockerfile: docker/backend/Dockerfile
     container_name: opsflow-scheduler
-    env_file:
-      - path: ./backend/.env
-        required: false
     command: ["php", "artisan", "schedule:work"]
     volumes:
       - ./backend:/var/www/html
@@ -91,9 +82,6 @@ services:
       context: .
       dockerfile: docker/backend/Dockerfile
     container_name: opsflow-reverb
-    env_file:
-      - path: ./backend/.env
-        required: false
     command: ["php", "artisan", "reverb:start", "--host=0.0.0.0", "--port=8080"]
     volumes:
       - ./backend:/var/www/html
@@ -112,7 +100,9 @@ services:
       POSTGRES_USER: opsflow
       POSTGRES_PASSWORD: opsflow
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      # PostgreSQL 18 stores data in a version-specific subdirectory, so the
+      # volume mounts at /var/lib/postgresql (not .../data).
+      - pgdata:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U opsflow -d opsflow"]
       interval: 5s

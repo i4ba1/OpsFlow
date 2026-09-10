@@ -5,6 +5,12 @@
     "description": "OpsFlow API - multi-tenant B2B operations and client service platform (Laravel 13 / PHP 8.5).",
     "keywords": ["laravel", "framework"],
     "license": "MIT",
+    "authors": [
+        {
+            "name": "i4ba1",
+            "email": "muhamadiqbal1987@gmail.com"
+        }
+    ],
     "require": {
         "php": "^8.3",
         "laravel/framework": "^13.17",
@@ -12,6 +18,7 @@
         "laravel/reverb": "^1.11",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
+        "league/flysystem-aws-s3-v3": "^3.25",
         "pusher/pusher-php-server": "^7.3"
     },
     "require-dev": {

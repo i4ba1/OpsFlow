@@ -3,6 +3,8 @@
 
 # Local tooling state
 .commandcode/
+.agents/
+.codex/
 
 # Backend
 /backend/vendor/
@@ -15,6 +17,9 @@
 /backend/public/hot
 /backend/public/storage
 
+# Root npm workspace
+/node_modules/
+
 # Frontend
 /frontend/node_modules/
 /frontend/dist/
@@ -22,10 +27,14 @@
 /frontend/coverage/
 /frontend/playwright-report/
 /frontend/test-results/
+# NOTE: /frontend/e2e/screenshots/ is intentionally tracked — the images are
+# embedded in the README and refreshed by `make e2e`.
 
 # Tooling
 .phpstan.cache/
 .php-cs-fixer.cache
+*.tsbuildinfo
+*.log
 
 # OS / editors
 .DS_Store

@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import {
   Alert,
+  Button,
   Chip,
   LinearProgress,
   Paper,
@@ -23,7 +24,9 @@ import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
 import { fetchCustomers } from './customer-api';
+import { CustomerFormDialog } from './CustomerFormDialog';
 import { customerKeys } from '../../api/query-keys';
+import { usePermission } from '../../permissions/Can';
 
 const searchSchema = z.object({ search: z.string() });
 
@@ -31,9 +34,11 @@ type SearchForm = z.infer<typeof searchSchema>;
 
 export function CustomersPage() {
   const navigate = useNavigate();
+  const { hasPermission } = usePermission();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(15);
   const [search, setSearch] = useState('');
+  const [createOpen, setCreateOpen] = useState(false);
 
   const { data, isPending, error } = useQuery({
     queryKey: customerKeys.list({
@@ -70,6 +75,11 @@ export function CustomersPage() {
         <Typography variant="h4" component="h1">
           Customers
         </Typography>
+        {hasPermission('customer.create') && (
+          <Button variant="contained" onClick={() => setCreateOpen(true)}>
+            New customer
+          </Button>
+        )}
       </Stack>
 
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -133,6 +143,8 @@ export function CustomersPage() {
           />
         )}
       </TableContainer>
+
+      <CustomerFormDialog open={createOpen} onClose={() => setCreateOpen(false)} />
     </Stack>
   );
 }

@@ -2,7 +2,7 @@ SHELL := /bin/bash
 COMPOSE := docker compose
 
 .PHONY: setup up down restart build logs install key migrate seed fresh \
-        backend-test frontend-test lint analyse format \
+        backend-test frontend-test lint analyse format e2e e2e-install \
         shell-backend shell-frontend psql help
 
 help: ## Show available commands
@@ -60,6 +60,13 @@ backend-test: ## Run the backend (Pest) test suite
 
 frontend-test: ## Run the frontend (Vitest) test suite
 	$(COMPOSE) exec frontend npm run test
+
+e2e: ## Build the frontend and run Playwright E2E against the live stack (:8080)
+	$(COMPOSE) exec frontend npm run build
+	$(COMPOSE) exec -e PLAYWRIGHT_BASE_URL=http://nginx frontend npm run e2e
+
+e2e-install: ## Download the Playwright browser binaries into the frontend container
+	$(COMPOSE) exec frontend npx playwright install chromium --with-deps
 
 lint: ## Run backend (Pint) and frontend (ESLint) linters
 	$(COMPOSE) exec backend ./vendor/bin/pint --test

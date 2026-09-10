@@ -22,7 +22,10 @@ export type Customer = {
   email: string | null;
   phone: string | null;
   billing_email: string | null;
+  address_line_1: string | null;
+  address_line_2: string | null;
   city: string | null;
+  postal_code: string | null;
   country_code: string;
   status: CustomerStatus;
   contacts_count?: number;
@@ -87,6 +90,11 @@ export type ServiceRequestStatus =
 
 export type ServiceRequestPriority = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
 
+export type AvailableTransition = {
+  status: ServiceRequestStatus;
+  permission: string;
+};
+
 export type ServiceRequest = {
   id: string;
   request_number: string;
@@ -106,16 +114,23 @@ export type ServiceRequest = {
   resolution_due_at: string | null;
   resolved_at: string | null;
   closed_at: string | null;
+  available_transitions: AvailableTransition[];
+};
+
+export type DirectoryUser = {
+  id: string;
+  name: string;
+  email: string;
 };
 
 export type ServiceRequestEvent = {
   id: string;
   type: 'STATUS_CHANGED' | 'ASSIGNED' | 'PRIORITY_CHANGED' | 'COMMENT' | 'ATTACHMENT';
   actor: { id: string; name: string } | null;
-  from_value: string | null;
-  to_value: string | null;
+  occurred_at: string;
+  data: { from: string | null; to: string | null };
   note: string | null;
-  created_at: string;
+  metadata?: Record<string, unknown> | null;
 };
 
 export type RequestFilters = {

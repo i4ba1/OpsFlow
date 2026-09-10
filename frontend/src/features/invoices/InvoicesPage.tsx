@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import {
   Alert,
+  Button,
   Chip,
   LinearProgress,
   Paper,
@@ -19,6 +20,8 @@ import { useNavigate } from 'react-router-dom';
 
 import type { InvoiceStatus } from '../../types/features';
 import { invoiceKeys } from '../../api/query-keys';
+import { usePermission } from '../../permissions/Can';
+import { CreateInvoiceDialog } from './CreateInvoiceDialog';
 import { fetchInvoices } from './invoice-api';
 
 const STATUS_COLOR: Record<InvoiceStatus, 'default' | 'warning' | 'success' | 'error' | 'info'> = {
@@ -36,8 +39,10 @@ const currencyFormatter = new Intl.NumberFormat('en-SG', {
 
 export function InvoicesPage() {
   const navigate = useNavigate();
+  const { hasPermission } = usePermission();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(15);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const { data, isPending, error } = useQuery({
     queryKey: invoiceKeys.list({ page: page + 1, per_page: rowsPerPage }),
@@ -51,9 +56,20 @@ export function InvoicesPage() {
 
   return (
     <Stack spacing={2}>
-      <Typography variant="h4" component="h1">
-        Invoices
-      </Typography>
+      <Stack
+        direction="row"
+        spacing={2}
+        sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+      >
+        <Typography variant="h4" component="h1">
+          Invoices
+        </Typography>
+        {hasPermission('invoice.create') && (
+          <Button variant="contained" onClick={() => setCreateOpen(true)}>
+            New invoice
+          </Button>
+        )}
+      </Stack>
 
       {isPending && <LinearProgress />}
       {error != null && <Alert severity="error">{error.message}</Alert>}
@@ -115,6 +131,8 @@ export function InvoicesPage() {
           />
         )}
       </TableContainer>
+
+      <CreateInvoiceDialog open={createOpen} onClose={() => setCreateOpen(false)} />
     </Stack>
   );
 }

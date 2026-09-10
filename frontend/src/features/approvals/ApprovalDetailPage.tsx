@@ -16,7 +16,8 @@ import { useParams } from 'react-router-dom';
 
 import { approvalKeys } from '../../api/query-keys';
 import { useAuth } from '../../auth/auth-context';
-import { fetchApproval, respondToApproval } from './approval-api';
+import { usePermission } from '../../permissions/Can';
+import { cancelApproval, fetchApproval, respondToApproval } from './approval-api';
 
 const STATUS_COLOR: Record<string, 'default' | 'warning' | 'success' | 'error'> = {
   PENDING: 'warning',
@@ -29,6 +30,7 @@ const STATUS_COLOR: Record<string, 'default' | 'warning' | 'success' | 'error'> 
 export function ApprovalDetailPage() {
   const { approvalId = '' } = useParams();
   const { user } = useAuth();
+  const { hasPermission } = usePermission();
   const queryClient = useQueryClient();
   const [note, setNote] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
@@ -47,6 +49,12 @@ export function ApprovalDetailPage() {
   const decisionMutation = useMutation({
     mutationFn: ({ decision, note: n }: { decision: 'approve' | 'reject'; note?: string }) =>
       respondToApproval(approvalId, decision, n),
+    onSuccess: invalidate,
+    onError: (e: Error) => setLocalError(e.message),
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: () => cancelApproval(approvalId),
     onSuccess: invalidate,
     onError: (e: Error) => setLocalError(e.message),
   });
@@ -145,6 +153,19 @@ export function ApprovalDetailPage() {
             </Stack>
           </CardContent>
         </Card>
+      )}
+
+      {isPending && hasPermission('approval.cancel') && (
+        <Stack direction="row" sx={{ justifyContent: 'flex-end' }}>
+          <Button
+            variant="outlined"
+            color="inherit"
+            disabled={cancelMutation.isPending}
+            onClick={() => cancelMutation.mutate()}
+          >
+            Cancel approval
+          </Button>
+        </Stack>
       )}
     </Stack>
   );

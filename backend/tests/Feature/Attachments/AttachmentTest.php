@@ -244,3 +244,62 @@ it('requires the attachment.create permission to upload', function () {
 
     expect(Attachment::query()->count())->toBe(0);
 });
+
+it('lists the attachments uploaded against a request', function () {
+    Storage::fake('local');
+
+    $org = Organization::factory()->create();
+    $user = makeAttachmentUploader($org);
+    $request = attachmentRequest($org, $user);
+
+    $token = $user->createToken('spa')->plainTextToken;
+
+    foreach (['first.pdf', 'second.pdf'] as $name) {
+        $this->withToken($token)
+            ->post("/api/v1/service-requests/{$request->id}/attachments", [
+                'file' => UploadedFile::fake()->create($name, 10, 'application/pdf'),
+            ])
+            ->assertCreated();
+    }
+
+    $this->withToken($token)
+        ->getJson("/api/v1/service-requests/{$request->id}/attachments")
+        ->assertOk()
+        ->assertJsonCount(2, 'data')
+        ->assertJsonFragment(['original_name' => 'first.pdf'])
+        ->assertJsonFragment(['original_name' => 'second.pdf'])
+        ->assertJsonStructure(['data' => [['id', 'original_name', 'mime_type', 'size_bytes']], 'meta' => ['request_id']]);
+});
+
+it('returns 404 listing attachments of a foreign-organization request', function () {
+    Storage::fake('local');
+
+    $orgA = Organization::factory()->create();
+    $userA = makeAttachmentUploader($orgA);
+
+    $orgB = Organization::factory()->create();
+    $userB = User::factory()->create(['organization_id' => $orgB->id]);
+    $requestB = attachmentRequest($orgB, $userB);
+
+    $token = $userA->createToken('spa')->plainTextToken;
+
+    $this->withToken($token)
+        ->getJson("/api/v1/service-requests/{$requestB->id}/attachments")
+        ->assertNotFound()
+        ->assertJsonPath('error.code', 'RESOURCE_NOT_FOUND');
+});
+
+it('requires request.view to list attachments', function () {
+    Storage::fake('local');
+
+    $org = Organization::factory()->create();
+    $user = User::factory()->create(['organization_id' => $org->id]);
+    $request = attachmentRequest($org, $user);
+
+    $token = $user->createToken('spa')->plainTextToken;
+
+    $this->withToken($token)
+        ->getJson("/api/v1/service-requests/{$request->id}/attachments")
+        ->assertForbidden()
+        ->assertJsonPath('error.code', 'FORBIDDEN');
+});
